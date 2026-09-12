@@ -272,7 +272,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
                 d_pulley_thep_chuan = lam_tron_pulley_chuan(d_min_thep)
                 st.info(f"D_min tính toán: **{d_min_thep:.1f} mm**")
                 st.success(f"Đường kính Pulley tiêu chuẩn đề xuất: **Ø {d_pulley_thep_chuan} mm**")
-with tab4:
+    with tab4:
         st.subheader("⚡ TÍNH TOÁN CÔNG SUẤT CHUYÊN SÂU THEO TIÊU CHUẨN CEMA (RULMECA V7.24)")
         st.caption("BÓC TÁCH CHI TIẾT TỪNG THÀNH PHẦN LỰC CẢN VẬT LÝ & MÔ PHỎNG ĐƯỜNG RƠI PARABOL VẬT LIỆU")
 
