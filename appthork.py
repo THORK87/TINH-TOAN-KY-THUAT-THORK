@@ -195,7 +195,15 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_dong_co_kW:.1f} kW")
-        m2.metric("TỔNG LỰC KÉO F", f"{F_kN:.2f} kN")
+        # Tính lực kéo khởi động trên 1 cm khổ rộng băng (kgf/cm)
+luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B / 10.0)
+
+# Hiển thị vào metric:
+m2.metric(
+    "TỔNG LỰC KÉO F",
+    f"{F_kN:.2f} kN",
+    delta=f"{luc_kd_kgf_cm:.2f} kgf/cm (kđ)"
+)
         m3.metric("PULLEY TIÊU CHUẨN ĐƯỢC CHỌN", f"Ø {d_pulley_chuan_mm} mm", delta=f"D_min: {d_min_ly_thuyet:.0f} mm")
         m4.metric("CHU VI LIỀN TRÒN (CVLT)", f"{CVLT:.2f} m", delta=f"Tuyến L = {L_tuyen:.2f} m")
 
