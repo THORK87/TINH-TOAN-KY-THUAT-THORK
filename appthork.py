@@ -194,7 +194,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         st.subheader("📊 KẾT QUẢ TÍNH TOÁN KỸ THUẬT & PULLEY")
 
       # Tính lực kéo khởi động quy đổi ra kgf/cm theo khổ rộng B
-        luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B )
+        luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B/100.0 )
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_dong_co_kW:.1f} kW")
