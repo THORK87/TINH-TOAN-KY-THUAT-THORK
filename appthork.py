@@ -90,23 +90,24 @@ st.sidebar.title("🛠️ MENU HỆ THỐNG THORK")
 module_chon = st.sidebar.radio(
     "CHỌN MODULE TÍNH TOÁN:",
     [
-        "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)",
+        "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMECA)",
         "MODULE 2: CÔNG NGHỆ ÉP THỦY LỰC & LƯU HÓA CAO SU",
         "MODULE 3: CÔNG NGHỆ COMPOUND & TRUYỀN ĐỘNG ĐAI"
     ]
 )
 
 # ==============================================================================
-# MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)
+# MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101 & CEMA / RULMECA)
 # ==============================================================================
-if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)":
+if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMECA)":
     st.title("⚡ MODULE 1: THIẾT KẾ & TÍNH TOÁN HỆ THỐNG BĂNG TẢI")
-    st.caption("TIÊU CHUẨN DIN 22101 - TÍNH CÔNG SUẤT, TỰ ĐỘNG CHỌN VẢI EP & TỰ ĐỘNG KHÓA PULLEY CHUẨN D_MIN")
+    st.caption("ĐỐI CHIẾU SONG SONG TIÊU CHUẨN DIN 22101 (ĐỨC/XƯỞNG) & TIÊU CHUẨN CEMA / RULMECA (MỸ)")
 
-    tab1, tab2, tab3 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
         "1. TÍNH ĐỘNG CƠ & CHỌN VẢI EP (DIN 22101)",
         "2. ĐỊNH MỨC BĂNG TẢI LÕI THÉP (ST)",
-        "3. TRỌNG LƯỢNG 1M BĂNG & TANG TỐI THIỂU"
+        "3. TRỌNG LƯỢNG 1M BĂNG & TANG TỐI THIỂU",
+        "4. TÍNH CÔNG SUẤT CHUYÊN SÂU CEMA / RULMECA (USA)"
     ])
 
     with tab1:
@@ -271,7 +272,110 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
                 d_pulley_thep_chuan = lam_tron_pulley_chuan(d_min_thep)
                 st.info(f"D_min tính toán: **{d_min_thep:.1f} mm**")
                 st.success(f"Đường kính Pulley tiêu chuẩn đề xuất: **Ø {d_pulley_thep_chuan} mm**")
+with tab4:
+        st.subheader("⚡ TÍNH TOÁN CÔNG SUẤT CHUYÊN SÂU THEO TIÊU CHUẨN CEMA (RULMECA V7.24)")
+        st.caption("BÓC TÁCH CHI TIẾT TỪNG THÀNH PHẦN LỰC CẢN VẬT LÝ & MÔ PHỎNG ĐƯỜNG RƠI PARABOL VẬT LIỆU")
 
+        c_cema1, c_cema2, c_cema3 = st.columns(3)
+        with c_cema1:
+            st.markdown("##### 📍 THÔNG SỐ CƠ BẢN (HỆ MÉT)")
+            L_cema_m = st.number_input("CHIỀU DÀI TUYẾN L (m):", value=30.48, step=5.0, key="cema_L")
+            Q_cema_th = st.number_input("NĂNG SUẤT Q (t/h):", value=453.6, step=20.0, key="cema_Q")
+            V_cema_ms = st.number_input("VẬN TỐC BĂNG V (m/s):", value=1.524, step=0.1, key="cema_V")
+            H_cema_m = st.number_input("CHIỀU CAO NÂNG H (m):", value=0.0, step=0.5, key="cema_H")
+
+        with c_cema2:
+            st.markdown("##### ⚙️ MA SÁT PHỤ CEMA")
+            temp_c = st.number_input("NHIỆT ĐỘ MÔI TRƯỜNG (°C):", value=25.0, step=5.0)
+            so_cleaner = st.number_input("SỐ LƯỢNG GẠT BĂNG (CLEANERS):", value=1, min_value=0, max_value=5)
+            chieu_dai_skirt_m = st.number_input("CHIỀU DÀI TẤM CHẮN PHỄU (m):", value=3.66, step=0.5)
+            be_sau_skirt_cm = st.number_input("ĐỘ DÀY LIỆU TẠI PHỄU (cm):", value=7.62, step=1.0)
+
+        with c_cema3:
+            st.markdown("##### 🎯 THÔNG SỐ TANG TRỐNG")
+            dk_tang_cema_mm = st.number_input("ĐƯỜNG KÍNH TANG CHỦ ĐỘNG (mm):", value=320, step=20)
+            boc_cao_su_mm = st.number_input("BỀ DÀY BỌC CAO SU TANG (LAGGING) (mm):", value=8.0, step=1.0)
+            hieu_suat_truyen = st.number_input("HIỆU SUẤT TRUYỀN ĐỘNG HỘP SỐ:", value=0.94, step=0.01)
+
+        # Chuyển đổi ngầm sang hệ Imperial (ft, lbs, fpm, tph)
+        L_ft = L_cema_m * 3.28084
+        Q_tph = Q_cema_th * 1.10231
+        V_fpm = V_cema_ms * 196.85
+        H_ft = H_cema_m * 3.28084
+        skirt_len_ft = chieu_dai_skirt_m * 3.28084
+        skirt_depth_in = be_sau_skirt_cm / 2.54
+
+        # Trọng lượng vật liệu Wm (lbs/ft)
+        Wm_lbs_ft = (Q_tph * 2000.0) / (60.0 * V_fpm) if V_fpm > 0 else 0
+        Wb_lbs_ft = 9.0
+
+        # Hệ số điều kiện CEMA
+        temp_f = temp_c * 1.8 + 32.0
+        Kt = 1.0 if temp_f >= 32 else (1.0 + (32.0 - temp_f) * 0.008)
+        Kx = 0.494
+        Ky = 0.025
+
+        # Bóc tách 8 thành phần lực cản Te (lbs)
+        Tx_lbs = L_ft * Kx * Kt
+        Tyr_lbs = L_ft * Ky * Wb_lbs_ft * Kt
+        Tyc_lbs = L_ft * Ky * (Wb_lbs_ft + Wm_lbs_ft) * Kt
+        Th_lbs = Wm_lbs_ft * H_ft
+        Tam_lbs = (Q_tph * V_fpm) / 3474.0
+        Tsb_lbs = skirt_len_ft * (0.128 * (skirt_depth_in ** 2) + 0.15) * 6.0
+        Tbc_lbs = so_cleaner * 180.0
+        Tp_lbs = 20.0
+
+        Te_lbs = Tx_lbs + Tyr_lbs + Tyc_lbs + Th_lbs + Tam_lbs + Tsb_lbs + Tbc_lbs + Tp_lbs
+        Te_kN = Te_lbs * 0.00444822
+
+        # Tính công suất điện và tổn hao
+        HP_belt = (Te_lbs * V_fpm) / 33000.0
+        HP_bearing = 0.03 * HP_belt + 0.05
+        HP_gear = (HP_belt + HP_bearing) * (1.0 / hieu_suat_truyen - 1.0)
+        HP_tong = HP_belt + HP_bearing + HP_gear
+        P_tong_kW = HP_tong * 0.7457
+
+        st.divider()
+        st.markdown("#### 📊 BẢNG ĐỐI CHIẾU NĂNG LƯỢNG & CÔNG SUẤT ĐỘNG CƠ CEMA")
+        rc1, rc2, rc3, rc4 = st.columns(4)
+        rc1.metric("CÔNG SUẤT ĐỘNG CƠ TỔNG", f"{P_tong_kW:.2f} kW", delta=f"{HP_tong:.2f} HP")
+        rc2.metric("LỰC CĂNG HIỆU DỤNG TE", f"{Te_kN:.2f} kN", delta=f"{Te_lbs:.0f} lbs")
+        rc3.metric("KHỐI LƯỢNG LIỆU TẢI (Wm)", f"{Wm_lbs_ft * 1.488:.1f} kg/m", delta=f"{Wm_lbs_ft:.1f} lbs/ft")
+        rc4.metric("TỔN HAO CƠ KHÍ & HỘP SỐ", f"{(HP_bearing + HP_gear)*0.7457:.2f} kW")
+
+        df_cema_luc = pd.DataFrame({
+            "THÀNH PHẦN LỰC CẢN CEMA": [
+                "Lực ma sát con lăn (Tx)", 
+                "Lực cản uốn lượn nhánh không tải (Tyr)", 
+                "Lực cản uốn lượn nhánh có tải (Tyc)", 
+                "Lực nâng thẳng đứng (Th)", 
+                "Lực gia tốc nạp liệu (Tam)", 
+                "Lực ma sát tấm chắn liệu (Tsb)", 
+                "Lực cản gạt dọn băng (Tbc)", 
+                "Lực cản tang uốn phụ (Tp)"
+            ],
+            "GIÁ TRỊ (lbs)": [f"{Tx_lbs:.1f}", f"{Tyr_lbs:.1f}", f"{Tyc_lbs:.1f}", f"{Th_lbs:.1f}", f"{Tam_lbs:.1f}", f"{Tsb_lbs:.1f}", f"{Tbc_lbs:.1f}", f"{Tp_lbs:.1f}"],
+            "GIÁ TRỊ QUY ĐỔI (kN)": [f"{Tx_lbs*0.00445:.2f}", f"{Tyr_lbs*0.00445:.2f}", f"{Tyc_lbs*0.00445:.2f}", f"{Th_lbs*0.00445:.2f}", f"{Tam_lbs*0.00445:.2f}", f"{Tsb_lbs*0.00445:.2f}", f"{Tbc_lbs*0.00445:.2f}", f"{Tp_lbs*0.00445:.2f}"],
+            "TỶ TRỌNG (%)": [f"{(Tx_lbs/Te_lbs)*100:.1f}%", f"{(Tyr_lbs/Te_lbs)*100:.1f}%", f"{(Tyc_lbs/Te_lbs)*100:.1f}%", f"{(Th_lbs/Te_lbs)*100:.1f}%", f"{(Tam_lbs/Te_lbs)*100:.1f}%", f"{(Tsb_lbs/Te_lbs)*100:.1f}%", f"{(Tbc_lbs/Te_lbs)*100:.1f}%", f"{(Tp_lbs/Te_lbs)*100:.1f}%"]
+        })
+        st.table(df_cema_luc)
+
+        # Mô phỏng quỹ đạo rơi vật liệu (CEMA Trajectory)
+        st.markdown("#### 📈 MÔ PHỎNG ĐƯỜNG CONG QUỸ ĐẠO RƠI VẬT LIỆU (CEMA TRAJECTORY)")
+        R_tong_m = (dk_tang_cema_mm / 2.0 + boc_cao_su_mm + 15.0) / 1000.0
+        V_tang = V_cema_ms
+        ly_tam = (V_tang ** 2) / (9.81 * R_tong_m)
+        theta_deg = 0.0 if ly_tam >= 1.0 else math.degrees(math.acos(ly_tam))
+
+        t_arr = np.linspace(0, 0.8, 25)
+        vx0 = V_tang * math.cos(math.radians(theta_deg))
+        vy0 = V_tang * math.sin(math.radians(theta_deg))
+        x_m = vx0 * t_arr
+        y_m = - (vy0 * t_arr + 0.5 * 9.81 * (t_arr ** 2))
+
+        df_traj = pd.DataFrame({"KHOẢNG CÁCH BAY X (m)": x_m, "ĐỘ RƠI SÂU Y (m)": y_m})
+        st.line_chart(df_traj.set_index("KHOẢNG CÁCH BAY X (m)"))
+        st.caption(f"Góc văng vật liệu khỏi tang: **{theta_deg:.1f}°** | Vận tốc tiếp tuyến: **{V_tang:.2f} m/s**")
 # ==============================================================================
 # MODULE 2: CÔNG NGHỆ ÉP THỦY LỰC & LƯU HÓA CAO SU
 # ==============================================================================
