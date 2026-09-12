@@ -129,7 +129,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
             Q = st.number_input("NĂNG SUẤT VẬN CHUYỂN Q (t/h):", value=400.0, step=10.0)
             V = st.number_input("VẬN TỐC BĂNG V (m/s):", value=1.0, step=0.1)
             mu = st.number_input("HỆ SỐ MA SÁT CON LĂN (f):", value=0.07, step=0.01, format="%.2f")
-            he_so_an_toan = st.number_input("HỆ SỐ AN TOÀN (SF):", value=6.0, step=0.5)
+            he_so_an_toan = st.number_input("HỆ SỐ AN TOÀN (SF):", value=10.0, step=0.5)
 
         with c3:
             st.subheader("KẾT CẤU & ĐƯỜNG KÍNH PULLEY")
