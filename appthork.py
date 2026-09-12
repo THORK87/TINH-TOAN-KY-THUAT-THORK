@@ -276,15 +276,28 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         st.subheader("⚡ TÍNH TOÁN CÔNG SUẤT CHUYÊN SÂU THEO TIÊU CHUẨN CEMA (RULMECA V7.24)")
         st.caption("BÓC TÁCH CHI TIẾT TỪNG THÀNH PHẦN LỰC CẢN VẬT LÝ & MÔ PHỎNG ĐƯỜNG RƠI PARABOL VẬT LIỆU")
 
+        dong_bo = st.checkbox("🔗 ĐỒNG BỘ TOÀN BỘ THÔNG SỐ VỚI TAB 1 (DIN 22101)", value=True)
+
         c_cema1, c_cema2, c_cema3 = st.columns(3)
         with c_cema1:
             st.markdown("##### 📍 THÔNG SỐ CƠ BẢN (HỆ MÉT)")
-            B_cema_mm = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=900, step=50, key="cema_B")
+            if dong_bo:
+                B_cema_mm = float(B)
+                L_cema_m = float(L_tuyen)
+                Q_cema_th = float(Q)
+                V_cema_ms = float(V)
+                # Tự động tính H từ góc dốc alpha của Tab 1: H = L * sin(alpha)
+                H_cema_m = float(L_tuyen * math.sin(math.radians(alpha_deg)))
+                
+                st.info(f"Đang đồng bộ từ Tab 1:\n- Khổ B: **{B_cema_mm:.0f} mm**\n- Tuyến L: **{L_cema_m:.2f} m**\n- Góc dốc: **{alpha_deg:.1f}°** $\\to$ Nâng cao H: **{H_cema_m:.2f} m**\n- Năng suất Q: **{Q_cema_th:.1f} t/h** | V: **{V_cema_ms:.2f} m/s**")
+            else:
+                B_cema_mm = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=float(B), step=50.0, key="cema_B")
+                L_cema_m = st.number_input("CHIỀU DÀI TUYẾN L (m):", value=float(L_tuyen), step=5.0, key="cema_L")
+                Q_cema_th = st.number_input("NĂNG SUẤT Q (t/h):", value=float(Q), step=20.0, key="cema_Q")
+                V_cema_ms = st.number_input("VẬN TỐC BĂNG V (m/s):", value=float(V), step=0.1, key="cema_V")
+                H_cema_m = st.number_input("CHIỀU CAO NÂNG H (m):", value=float(L_tuyen * math.sin(math.radians(alpha_deg))), step=0.5, key="cema_H")
+
             w_in = B_cema_mm / 25.4
-            L_cema_m = st.number_input("CHIỀU DÀI TUYẾN L (m):", value=30.0, step=5.0, key="cema_L")
-            Q_cema_th = st.number_input("NĂNG SUẤT Q (t/h):", value=350.0, step=20.0, key="cema_Q")
-            V_cema_ms = st.number_input("VẬN TỐC BĂNG V (m/s):", value=1.5, step=0.1, key="cema_V")
-            H_cema_m = st.number_input("CHIỀU CAO NÂNG H (m):", value=0.0, step=0.5, key="cema_H")
 
         with c_cema2:
             st.markdown("##### ⚙️ MA SÁT PHỤ CEMA")
@@ -295,11 +308,15 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
 
         with c_cema3:
             st.markdown("##### 🎯 THÔNG SỐ TANG TRỐNG")
-            dk_tang_cema_mm = st.number_input("ĐƯỜNG KÍNH TANG CHỦ ĐỘNG (mm):", value=320, step=20)
+            # Đồng bộ đường kính Tang tiêu chuẩn vừa chọn ở Tab 1
+            dk_default = float(d_pulley_chuan) if dong_bo else 320.0
+            dk_tang_cema_mm = st.number_input("ĐƯỜNG KÍNH TANG CHỦ ĐỘNG (mm):", value=dk_default, step=20.0)
             boc_cao_su_mm = st.number_input("BỀ DÀY BỌC CAO SU TANG (LAGGING) (mm):", value=8.0, step=1.0)
-            hieu_suat_truyen = st.number_input("HIỆU SUẤT TRUYỀN ĐỘNG HỘP SỐ:", value=0.94, step=0.01)
+            hieu_suat_truyen = float(hieu_suat) if dong_bo else 0.94
+            st.caption(f"Hiệu suất truyền động: **{hieu_suat_truyen:.2f}**")
 
-        # Chuyển đổi ngầm sang hệ Imperial (ft, lbs, fpm, tph)
+        # Quy đổi và tính toán tiếp tục...
+        Wb_lbs_ft = (m2_bang * 0.67197) if dong_bo else 9.0
         L_ft = L_cema_m * 3.28084
         Q_tph = Q_cema_th * 1.10231
         V_fpm = V_cema_ms * 196.85
