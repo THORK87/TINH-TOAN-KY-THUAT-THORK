@@ -309,7 +309,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         with c_cema3:
             st.markdown("##### 🎯 THÔNG SỐ TANG TRỐNG")
             # Đồng bộ đường kính Tang tiêu chuẩn vừa chọn ở Tab 1
-            dk_default = float(d_pulley_chuan) if dong_bo else 320.0
+            dk_default = float(d_pulley_chuan_mm) if (dong_bo and 'd_pulley_chuan_mm' in locals()) else 320.0
             dk_tang_cema_mm = st.number_input("ĐƯỜNG KÍNH TANG CHỦ ĐỘNG (mm):", value=dk_default, step=20.0)
             boc_cao_su_mm = st.number_input("BỀ DÀY BỌC CAO SU TANG (LAGGING) (mm):", value=8.0, step=1.0)
             hieu_suat_truyen = float(hieu_suat) if dong_bo else 0.94
