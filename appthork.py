@@ -104,7 +104,7 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
     with tab1:
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.subheader("THÔNG SỐ TUYẾN BĂNG")
+            st.subheader("THÔNG SỐ BĂNG")
             B = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=800, step=50)
             CVLT = st.number_input("CHU VI LIỀN TRÒN CVLT (m):", value=400.0, step=10.0)
             L_tuyen = CVLT / 2.0
