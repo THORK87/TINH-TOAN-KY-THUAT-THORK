@@ -104,12 +104,23 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
     with tab1:
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.subheader("THÔNG SỐ BĂNG")
-            B = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=800, step=50)
-            CVLT = st.number_input("CHU VI LIỀN TRÒN CVLT (m):", value=400.0, step=10.0)
-            L_tuyen = CVLT / 2.0
-            st.info(f"CHIỀU DÀI TUYẾN BĂNG (L/2): **{L_tuyen:.1f} m**")
-            alpha_deg = st.number_input("GÓC DỐC BĂNG TẢI (°):", value=23.0, step=1.0)
+            st.subheader("THÔNG SỐ TUYẾN BĂNG")
+        B = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=800, step=50)
+        
+        c_mode = st.radio("CÁCH NHẬP CHIỀU DÀI:", ["TỪ CHIỀU DÀI TUYẾN BĂNG", "TỪ CHU VI LIỀN TRÒN (CVLT)"], horizontal=True)
+        D_pulley_mm = st.number_input("ĐƯỜNG KÍNH PULLEY/TANG ĐẦU-ĐUÔI (mm):", value=630, step=50)
+        D_pulley_m = D_pulley_mm / 1000.0
+
+        if c_mode == "TỪ CHIỀU DÀI TUYẾN BĂNG":
+            L_tuyen = st.number_input("CHIỀU DÀI TUYẾN BĂNG (m):", value=200.0, step=5.0)
+            CVLT = 2 * L_tuyen + math.pi * D_pulley_m
+            st.info(f"CHU VI LIỀN TRÒN (CVLT): **{CVLT:.2f} m** (Đã cộng $\\pi \\times D$)")
+        else:
+            CVLT = st.number_input("CHU VI LIỀN TRÒN CVLT (m):", value=400.0, step=5.0)
+            L_tuyen = (CVLT - math.pi * D_pulley_m) / 2.0
+            st.info(f"CHIỀU DÀI TUYẾN THỰC TẾ (L): **{L_tuyen:.2f} m**")
+
+        alpha_deg = st.number_input("GÓC DỐC BĂNG TẢI (°):", value=23.0, step=1.0)
 
         with c2:
             st.subheader("THÔNG SỐ VẬN HÀNH")
