@@ -39,6 +39,14 @@ DANH_SACH_MAY_EP = [
     {"TÊN MÁY": "MÁY ÉP BIDA 37-1", "DK_XL_MM": 290, "SO_XL": 2, "KICH_THUOC_BAN": "800x1800", "AP_LUC_DEFAULT": 150},
 ]
 
+DAY_PULLEY_CHUAN = [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1400, 1600]
+
+def lam_tron_pulley_chuan(d_calc_mm):
+    for d in DAY_PULLEY_CHUAN:
+        if d >= d_calc_mm:
+            return d
+    return DAY_PULLEY_CHUAN[-1]
+
 def tinh_sf_start(chieu_dai_tuyen):
     if chieu_dai_tuyen < 50:
         return 1.2 + (chieu_dai_tuyen / 50.0) * (1.3 - 1.2)
@@ -93,7 +101,7 @@ module_chon = st.sidebar.radio(
 # ==============================================================================
 if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)":
     st.title("⚡ MODULE 1: THIẾT KẾ & TÍNH TOÁN HỆ THỐNG BĂNG TẢI")
-    st.caption("TÍNH TOÁN THEO TIÊU CHUẨN DIN 22101 - CHỌN BỐ VẢI EP, ĐỊNH MỨC CÁP THÉP, TANG TỐI THIỂU & TRỌNG LƯỢNG")
+    st.caption("TIÊU CHUẨN DIN 22101 - TÍNH CÔNG SUẤT, TỰ ĐỘNG CHỌN VẢI EP & TỰ ĐỘNG KHÓA PULLEY CHUẨN D_MIN")
 
     tab1, tab2, tab3 = st.tabs([
         "1. TÍNH ĐỘNG CƠ & CHỌN VẢI EP (DIN 22101)",
@@ -105,22 +113,15 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
         c1, c2, c3 = st.columns(3)
         with c1:
             st.subheader("THÔNG SỐ TUYẾN BĂNG")
-        B = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=800, step=50)
-        
-        c_mode = st.radio("CÁCH NHẬP CHIỀU DÀI:", ["TỪ CHIỀU DÀI TUYẾN BĂNG", "TỪ CHU VI LIỀN TRÒN (CVLT)"], horizontal=True)
-        D_pulley_mm = st.number_input("ĐƯỜNG KÍNH PULLEY/TANG ĐẦU-ĐUÔI (mm):", value=630, step=50)
-        D_pulley_m = D_pulley_mm / 1000.0
+            B = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=800, step=50)
+            c_mode = st.radio("CÁCH NHẬP CHIỀU DÀI:", ["CHIỀU DÀI TUYẾN (L)", "CHU VI LIỀN TRÒN (CVLT)"], horizontal=True)
+            
+            if c_mode == "CHIỀU DÀI TUYẾN (L)":
+                L_input = st.number_input("CHIỀU DÀI TUYẾN BĂNG L (m):", value=200.0, step=5.0)
+            else:
+                CVLT_input = st.number_input("CHU VI LIỀN TRÒN CVLT (m):", value=400.0, step=5.0)
 
-        if c_mode == "TỪ CHIỀU DÀI TUYẾN BĂNG":
-            L_tuyen = st.number_input("CHIỀU DÀI TUYẾN BĂNG (m):", value=200.0, step=5.0)
-            CVLT = 2 * L_tuyen + math.pi * D_pulley_m
-            st.info(f"CHU VI LIỀN TRÒN (CVLT): **{CVLT:.2f} m** (Đã cộng $\\pi \\times D$)")
-        else:
-            CVLT = st.number_input("CHU VI LIỀN TRÒN CVLT (m):", value=400.0, step=5.0)
-            L_tuyen = (CVLT - math.pi * D_pulley_m) / 2.0
-            st.info(f"CHIỀU DÀI TUYẾN THỰC TẾ (L): **{L_tuyen:.2f} m**")
-
-        alpha_deg = st.number_input("GÓC DỐC BĂNG TẢI (°):", value=23.0, step=1.0)
+            alpha_deg = st.number_input("GÓC DỐC BĂNG TẢI (°):", value=23.0, step=1.0)
 
         with c2:
             st.subheader("THÔNG SỐ VẬN HÀNH")
@@ -130,26 +131,55 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
             he_so_an_toan = st.number_input("HỆ SỐ AN TOÀN (SF):", value=6.0, step=0.5)
 
         with c3:
-            st.subheader("KẾT CẤU & TRUYỀN ĐỘNG")
-            cao_su_tren = st.number_input("CAO SU MẶT TRÊN (mm):", value=4.0, step=0.5)
-            cao_su_duoi = st.number_input("CAO SU MẶT DƯỚI (mm):", value=2.0, step=0.5)
+            st.subheader("KẾT CẤU & ĐƯỜNG KÍNH PULLEY")
+            cao_su_tren = st.number_input("BỀ DÀY CAO SU TRÊN (mm):", value=4.0, step=0.5)
+            cao_su_duoi = st.number_input("BỀ DÀY CAO SU DƯỚI (mm):", value=2.0, step=0.5)
             hieu_suat = st.number_input("HIỆU SUẤT TRUYỀN ĐỘNG (η):", value=0.85, step=0.05)
             he_so_vai = 0.95
 
-        # Tính toán DIN 22101
+            auto_pulley = st.checkbox("TỰ ĐỘNG CHỌN PULLEY THEO D_MIN CHUẨN", value=True)
+            if not auto_pulley:
+                D_pulley_custom = st.number_input("ĐƯỜNG KÍNH PULLEY TỰ NHẬP (mm):", value=630, step=50)
+
+        # -------------------------------------------------------------
+        # VÒNG TÍNH TOÁN LẶP CHUẨN XÁC:
+        # Bước A: Ước tính tuyến băng sơ bộ
+        L_tuyen_est = L_input if c_mode == "CHIỀU DÀI TUYẾN (L)" else (CVLT_input / 2.0)
         m2_bang = B * 0.0125
         m_vl = (Q * 1000.0) / (3600.0 * V)
-        sf_start = tinh_sf_start(L_tuyen)
-
+        sf_start_est = tinh_sf_start(L_tuyen_est)
+        
         alpha_rad = math.radians(alpha_deg)
         sin_alpha = math.sin(alpha_rad)
-        h_nang = sin_alpha * L_tuyen
 
+        F_kN_est = ((m_vl + m2_bang) * L_tuyen_est * 9.81 * (mu + sin_alpha)) / 1000.0
+        luc_keo_kgf_cm_est = (F_kN_est * sf_start_est * 101.972) / (B / 10.0)
+        luc_tong_vai_est = luc_keo_kgf_cm_est * he_so_an_toan * he_so_vai
+
+        # Chọn vải 5P làm chuẩn xác định độ dày
+        vai_chuan = tra_cuu_vai(luc_tong_vai_est / 5.0)
+        row_vai = DF_TIEUCHUAN_VAI[DF_TIEUCHUAN_VAI["LOAI_VAI"] == vai_chuan].iloc[0]
+        be_day_tong_mm = 5 * row_vai["BE_DAY"] + cao_su_tren + cao_su_duoi
+
+        # Tính D_min theo hệ số K=25 và làm tròn lên đường kính tiêu chuẩn
+        d_min_ly_thuyet = 25.0 * be_day_tong_mm
+        d_pulley_chuan_mm = lam_tron_pulley_chuan(d_min_ly_thuyet) if auto_pulley else D_pulley_custom
+        d_pulley_chuan_m = d_pulley_chuan_mm / 1000.0
+
+        # Bước B: Khóa kích thước chính thức bằng công thức chu vi có Pulley
+        if c_mode == "CHIỀU DÀI TUYẾN (L)":
+            L_tuyen = L_input
+            CVLT = 2.0 * L_tuyen + math.pi * d_pulley_chuan_m
+        else:
+            CVLT = CVLT_input
+            L_tuyen = (CVLT - math.pi * d_pulley_chuan_m) / 2.0
+
+        # Tính toán lại lần cuối theo chiều dài tuyến thực
+        sf_start = tinh_sf_start(L_tuyen)
+        h_nang = sin_alpha * L_tuyen
         FH = (m_vl + m2_bang) * 9.81 * sin_alpha * L_tuyen
         FF = (m_vl + m2_bang) * 9.81 * mu * L_tuyen
-        F_tong_N = FH + FF
-        F_kN = F_tong_N / 1000.0
-
+        F_kN = (FH + FF) / 1000.0
         P_dong_co_kW = (F_kN * V / hieu_suat) * sf_start
         luc_keo_kgf_cm = (F_kN * sf_start * 101.972) / (B / 10.0)
         luc_tong_vai = luc_keo_kgf_cm * he_so_an_toan * he_so_vai
@@ -157,15 +187,18 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
         vai_3p = tra_cuu_vai(luc_tong_vai / 3.0)
         vai_4p = tra_cuu_vai(luc_tong_vai / 4.0)
         vai_5p = tra_cuu_vai(luc_tong_vai / 5.0)
+        quy_cach_de_xuat = f"B{int(B)} x 5P({vai_5p}) x ({int(cao_su_tren)}+{int(cao_su_duoi)}) x {be_day_tong_mm:.1f}mm : CVLT = {CVLT:.2f}m"
 
         st.divider()
+        st.subheader("📊 KẾT QUẢ TÍNH TOÁN KỸ THUẬT & PULLEY")
+
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_dong_co_kW:.1f} kW")
         m2.metric("TỔNG LỰC KÉO F", f"{F_kN:.2f} kN")
-        m3.metric("LỰC NÂNG FH / LỰC CẢN FF", f"{FH/1000:.1f} / {FF/1000:.1f} kN")
-        m4.metric("LỰC KÉO ĐƠN VỊ", f"{luc_keo_kgf_cm:.2f} kgf/cm")
+        m3.metric("PULLEY TIÊU CHUẨN ĐƯỢC CHỌN", f"Ø {d_pulley_chuan_mm} mm", delta=f"D_min: {d_min_ly_thuyet:.0f} mm")
+        m4.metric("CHU VI LIỀN TRÒN (CVLT)", f"{CVLT:.2f} m", delta=f"Tuyến L = {L_tuyen:.2f} m")
 
-        st.markdown("#### 🎯 ĐỀ XUẤT KẾT CẤU VẢI CỐT")
+        st.markdown("#### 🎯 GỢI Ý PHƯƠNG ÁN KẾT CẤU VẢI BỐ")
         df_ep = pd.DataFrame({
             "KẾT CẤU": ["Phương án 3 lớp (3P)", "Phương án 4 lớp (4P)", "Phương án 5 lớp (5P) [Khuyến nghị]"],
             "LOẠI VẢI ĐỀ XUẤT": [f"3P({vai_3p})", f"4P({vai_4p})", f"5P({vai_5p})"],
@@ -173,6 +206,7 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
             "HỆ SỐ KHỞI ĐỘNG (SF)": [f"{sf_start:.3f}", f"{sf_start:.3f}", f"{sf_start:.3f}"]
         })
         st.table(df_ep)
+        st.success(f"📌 **QUY CÁCH BĂNG TẢI HOÀN CHỈNH XUẤT XƯỞNG:** `{quy_cach_de_xuat}`")
 
     with tab2:
         st.subheader("TÍNH TOÁN BĂNG TẢI LÕI THÉP (ST)")
@@ -189,8 +223,7 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
             luc_keo_dut_kn = st.number_input("CƯỜNG LỰC KÉO ĐỨT 1 SỢI (kN):", value=15.8, step=0.5)
             khoi_luong_cap_g_m = st.number_input("KHỐI LƯỢNG CÁP (g/m):", value=61.0, step=1.0)
 
-        # Tính toán cáp thép
-        so_soi = int((kho_st - 150) / buoc_cap)  # Biên chừa 75mm mỗi bên
+        so_soi = int((kho_st - 150) / buoc_cap)
         tong_chieu_dai_cap_m = so_soi * chieu_dai_st
         tong_tl_cap_kg = (tong_chieu_dai_cap_m * khoi_luong_cap_g_m) / 1000.0
         tong_luc_keo_kn = so_soi * luc_keo_dut_kn
@@ -227,14 +260,17 @@ if module_chon == "MODULE 1: THIẾT KẾ & TÍNH TOÁN BĂNG TẢI (DIN 22101)"
             if loai_loi == "BĂNG TẢI EP (VẢI)":
                 k_pully = st.slider("HỆ SỐ K (mm):", min_value=20, max_value=30, value=25)
                 day_bang_tong = so_lop_b * row_v["BE_DAY"] + cs_tren_m + cs_duoi_m
-                d_min = so_lop_b * k_pully * (day_bang_tong / (so_lop_b * row_v["BE_DAY"]))
-                d_min_std = so_lop_b * k_pully
-                st.info(f"Đường kính tang chủ động đề xuất: **≥ {d_min_std:.0f} mm** (Theo chuẩn $N \times K$)")
+                d_min_ly_thuyet_tab3 = k_pully * day_bang_tong
+                d_pulley_chuan_tab3 = lam_tron_pulley_chuan(d_min_ly_thuyet_tab3)
+                st.info(f"D_min tính toán: **{d_min_ly_thuyet_tab3:.1f} mm**")
+                st.success(f"Đường kính Pulley tiêu chuẩn đề xuất: **Ø {d_pulley_chuan_tab3} mm**")
             else:
                 alpha_pully = st.slider("HỆ SỐ α (THÉP):", min_value=120, max_value=150, value=140)
                 dk_soi_th = st.number_input("ĐƯỜNG KÍNH SỢI CÁP (mm):", value=6.0, step=0.5)
-                d_min = dk_soi_th * alpha_pully
-                st.info(f"Đường kính tang tối thiểu: **≥ {d_min:.0f} mm** (Theo công thức $d_{{cáp}} \times \\alpha$)")
+                d_min_thep = dk_soi_th * alpha_pully
+                d_pulley_thep_chuan = lam_tron_pulley_chuan(d_min_thep)
+                st.info(f"D_min tính toán: **{d_min_thep:.1f} mm**")
+                st.success(f"Đường kính Pulley tiêu chuẩn đề xuất: **Ø {d_pulley_thep_chuan} mm**")
 
 # ==============================================================================
 # MODULE 2: CÔNG NGHỆ ÉP THỦY LỰC & LƯU HÓA CAO SU
@@ -279,7 +315,6 @@ elif module_chon == "MODULE 2: CÔNG NGHỆ ÉP THỦY LỰC & LƯU HÓA CAO SU"
             do_cung = st.selectbox("ĐỘ CỨNG SẢN PHẨM (SHORE A):", ["SHORE A 40-50", "SHORE A 50-60", "SHORE A 60-70", "SHORE A 70-80"], index=1)
             do_phuc_tap = st.selectbox("KẾT CẤU GÂN / HOA VĂN:", ["ĐƠN GIẢN KHÔNG GÂN", "NHIỀU GÂN MỎNG"])
 
-        # Tính lực ép
         r_cm = (dk_xl / 10.0) / 2.0
         s_piston_cm2 = (r_cm ** 2) * math.pi
         tong_luc_ep_kg = (s_piston_cm2 * ap_luc_dong_ho) * so_xl
@@ -342,7 +377,6 @@ elif module_chon == "MODULE 2: CÔNG NGHỆ ÉP THỦY LỰC & LƯU HÓA CAO SU"
                 d_be_tr = st.number_input("ĐK ĐÁY BÉ TRONG (mm):", value=50.0)
                 h_non = st.number_input("CHIỀU CAO (mm):", value=150.2)
                 
-                # Thể tích nón cụt ngoài - thể tích rỗng trong
                 V_ngoai = (1/3) * math.pi * (h_non/10) * (((D_lon/20)**2) + ((D_be/20)**2) + (D_lon/20)*(D_be/20))
                 V_trong = (1/3) * math.pi * (h_non/10) * (((d_lon_tr/20)**2) + ((d_be_tr/20)**2) + (d_lon_tr/20)*(d_be_tr/20))
                 the_tich_cm3 = V_ngoai - V_trong
@@ -448,13 +482,10 @@ elif module_chon == "MODULE 3: CÔNG NGHỆ COMPOUND & TRUYỀN ĐỘNG ĐAI":
                 la_inch = la_mm / 25.4
 
         with col_c2:
-            # Độ chênh lệch giữa chu vi ngoài La và chu vi trong Li theo từng bản
             chenh_lech_map = {"BẢN A": 30.0, "BẢN B": 43.0, "BẢN C": 56.0, "BẢN D": 126.0, "BẢN E": 150.0}
             delta_l = chenh_lech_map.get(ban_dai, 126.0)
             li_mm = la_mm - delta_l
             li_inch = li_mm / 25.4
-            
-            # Dung sai danh nghĩa ISO 4184
             dung_sai_mm = 0.005 * la_mm + 10.0
 
         st.divider()
