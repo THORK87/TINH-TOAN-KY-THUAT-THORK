@@ -255,7 +255,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         m4.metric("CHU VI LIỀN TRÒN (CVLT)", f"{CVLT:.2f} m", delta=f"Tuyến L = {L_tuyen:.2f} m")
 
         st.markdown("#### 🎯 GỢI Ý PHƯƠNG ÁN KẾT CẤU VẢI BỐ")
-       luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
+        luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
         he_so_an_toan = 10.0
 
         df_5_phuong_an = chon_5_phuong_an_vai(
