@@ -279,9 +279,11 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         c_cema1, c_cema2, c_cema3 = st.columns(3)
         with c_cema1:
             st.markdown("##### 📍 THÔNG SỐ CƠ BẢN (HỆ MÉT)")
-            L_cema_m = st.number_input("CHIỀU DÀI TUYẾN L (m):", value=30.48, step=5.0, key="cema_L")
-            Q_cema_th = st.number_input("NĂNG SUẤT Q (t/h):", value=453.6, step=20.0, key="cema_Q")
-            V_cema_ms = st.number_input("VẬN TỐC BĂNG V (m/s):", value=1.524, step=0.1, key="cema_V")
+            B_cema_mm = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=900, step=50, key="cema_B")
+            w_in = B_cema_mm / 25.4
+            L_cema_m = st.number_input("CHIỀU DÀI TUYẾN L (m):", value=30, step=5.0, key="cema_L")
+            Q_cema_th = st.number_input("NĂNG SUẤT Q (t/h):", value=350, step=20.0, key="cema_Q")
+            V_cema_ms = st.number_input("VẬN TỐC BĂNG V (m/s):", value=1.5, step=0.1, key="cema_V")
             H_cema_m = st.number_input("CHIỀU CAO NÂNG H (m):", value=0.0, step=0.5, key="cema_H")
 
         with c_cema2:
