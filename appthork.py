@@ -40,7 +40,59 @@ DANH_SACH_MAY_EP = [
 ]
 
 DAY_PULLEY_CHUAN = [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1400, 1600]
+def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.95):
+    """
+    Tính lực chịu mỗi lớp và chọn mác EP cho 5 phương án (2P -> 6P)
+    Công thức: C15 * C11 * 0.95 / n với C11 = 10.0
+    """
+    danh_sach_ep = [100, 125, 150, 200, 250, 300, 400, 500]
+    tong_luc_yeu_cau = F_cang_kgf_cm * he_so_an_toan * hieu_suat_moi_noi
 
+    ket_qua = []
+    # Duyệt đủ 5 phương án từ 2 lớp đến 6 lớp
+    for n in [2, 3, 4, 5, 6]:
+        luc_1_lop = tong_luc_yeu_cau / n
+        
+        mac_chon = None
+        for ep in danh_sach_ep:
+            if ep >= luc_1_lop:
+                mac_chon = ep
+                break
+        
+        ten_pa = f"Phương án {n} lớp ({n}P)"
+        if mac_chon:
+            de_xuat = f"{n}P(EP{mac_chon})"
+            hop_le = True
+        else:
+            de_xuat = f"{n}P(>EP500 - Khuyên dùng ST)"
+            hop_le = False
+            
+        ket_qua.append({
+            "n": n,
+            "KẾT CẤU": ten_pa,
+            "LOẠI VẢI ĐỀ XUẤT": de_xuat,
+            "LỰC CHỊU MỖI LỚP (kgf/cm)": round(luc_1_lop, 1),
+            "HỆ SỐ AN TOÀN (SF)": f"{he_so_an_toan:.1f}",
+            "hop_le": hop_le,
+            "mac_ep": mac_chon if mac_chon else 9999
+        })
+
+    pa_dat = [p for p in ket_qua if p["hop_le"]]
+    pa_khuyen_nghi_idx = None
+    if pa_dat:
+        pa_uu_tien = [p for p in pa_dat if 3 <= p["n"] <= 5]
+        muc_tieu = pa_uu_tien if pa_uu_tien else pa_dat
+        pa_chon = min(muc_tieu, key=lambda x: x["mac_ep"])
+        pa_khuyen_nghi_idx = pa_chon["n"]
+
+    for p in ket_qua:
+        if p["n"] == pa_khuyen_nghi_idx:
+            p["KẾT CẤU"] += " ⭐ [Khuyến nghị]"
+        del p["n"]
+        del p["hop_le"]
+        del p["mac_ep"]
+
+    return pd.DataFrame(ket_qua)
 def lam_tron_pulley_chuan(d_calc_mm):
     for d in DAY_PULLEY_CHUAN:
         if d >= d_calc_mm:
@@ -194,7 +246,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         st.subheader("📊 KẾT QUẢ TÍNH TOÁN KỸ THUẬT & PULLEY")
 
       # Tính lực kéo khởi động quy đổi ra kgf/cm theo khổ rộng B
-        luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B/100.0 )
+        luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B/10.0 )
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_dong_co_kW:.1f} kW")
@@ -203,14 +255,22 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         m4.metric("CHU VI LIỀN TRÒN (CVLT)", f"{CVLT:.2f} m", delta=f"Tuyến L = {L_tuyen:.2f} m")
 
         st.markdown("#### 🎯 GỢI Ý PHƯƠNG ÁN KẾT CẤU VẢI BỐ")
-        df_ep = pd.DataFrame({
-            "KẾT CẤU": ["Phương án 3 lớp (3P)", "Phương án 4 lớp (4P)", "Phương án 5 lớp (5P) [Khuyến nghị]"],
-            "LOẠI VẢI ĐỀ XUẤT": [f"3P({vai_3p})", f"4P({vai_4p})", f"5P({vai_5p})"],
-            "LỰC CHỊU MỖI LỚP (kgf/cm)": [f"{luc_tong_vai/3:.1f}", f"{luc_tong_vai/4:.1f}", f"{luc_tong_vai/5:.1f}"],
-            "HỆ SỐ KHỞI ĐỘNG (SF)": [f"{sf_start:.3f}", f"{sf_start:.3f}", f"{sf_start:.3f}"]
-        })
-        st.table(df_ep)
-        st.success(f"📌 **QUY CÁCH BĂNG TẢI HOÀN CHỈNH XUẤT XƯỞNG:** `{quy_cach_de_xuat}`")
+       luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
+        he_so_an_toan = 10.0
+
+        df_5_phuong_an = chon_5_phuong_an_vai(
+            F_cang_kgf_cm=luc_cang_don_vi_kgf_cm, 
+            he_so_an_toan=he_so_an_toan, 
+            hieu_suat_moi_noi=0.95
+        )
+
+        st.table(df_5_phuong_an)
+
+        # Lấy quy cách của phương án được gắn sao [Khuyến nghị]
+        row_kn = df_5_phuong_an[df_5_phuong_an["KẾT CẤU"].str.contains("Khuyến nghị")]
+        quy_cach_de_xuat = row_kn["LOẠI VẢI ĐỀ XUẤT"].values[0] if not row_kn.empty else df_5_phuong_an["LOẠI VẢI ĐỀ XUẤT"].iloc[2]
+
+        st.success(f"🚀 **QUY CÁCH BĂNG TẢI HOÀN CHỈNH XUẤT XƯỞNG:** B{int(B)} x {quy_cach_de_xuat} x (4+2) : CVLT = {CVLT:.2f}m")
 
     with tab2:
         st.subheader("TÍNH TOÁN BĂNG TẢI LÕI THÉP (ST)")
