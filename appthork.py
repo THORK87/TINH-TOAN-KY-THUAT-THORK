@@ -328,7 +328,14 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         Tp_lbs = 20.0
 
         Te_lbs = Tx_lbs + Tyr_lbs + Tyc_lbs + Th_lbs + Tam_lbs + Tsb_lbs + Tbc_lbs + Tp_lbs
+        Te_lbs = Tx_lbs + Tyr_lbs + Tyc_lbs + Th_lbs + Tam_lbs + Tsb_lbs + Tbc_lbs + Tp_lbs
         Te_kN = Te_lbs * 0.00444822
+
+        # --- DÁN CỤM TÍNH LỰC CĂNG VẢI VÀO ĐÂY ---
+        T2_lbs = 0.5 * Te_lbs  # Lực căng nhánh nhả theo hệ số Cw = 0.5
+        T1_lbs = Te_lbs + T2_lbs
+        luc_piw = T1_lbs / w_in
+        luc_kgf_cm = (T1_lbs * 0.45359) / (B_cema_mm / 10.0)
 
         # Tính công suất điện và tổn hao
         HP_belt = (Te_lbs * V_fpm) / 33000.0
