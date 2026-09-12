@@ -345,12 +345,13 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         P_tong_kW = HP_tong * 0.7457
 
         st.divider()
-        st.markdown("#### 📊 BẢNG ĐỐI CHIẾU NĂNG LƯỢNG & CÔNG SUẤT ĐỘNG CƠ CEMA")
-        rc1, rc2, rc3, rc4 = st.columns(4)
-        rc1.metric("CÔNG SUẤT ĐỘNG CƠ TỔNG", f"{P_tong_kW:.2f} kW", delta=f"{HP_tong:.2f} HP")
-        rc2.metric("LỰC CĂNG HIỆU DỤNG TE", f"{Te_kN:.2f} kN", delta=f"{Te_lbs:.0f} lbs")
-        rc3.metric("KHỐI LƯỢNG LIỆU TẢI (Wm)", f"{Wm_lbs_ft * 1.488:.1f} kg/m", delta=f"{Wm_lbs_ft:.1f} lbs/ft")
-        rc4.metric("TỔN HAO CƠ KHÍ & HỘP SỐ", f"{(HP_bearing + HP_gear)*0.7457:.2f} kW")
+        st.markdown("#### 📊 BẢNG ĐỐI CHIẾU NĂNG LƯỢNG & LỰC CĂNG VẢI BỐ CEMA")
+        rc1, rc2, rc3, rc4, rc5 = st.columns(5)
+        rc1.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_tong_kW:.2f} kW", delta=f"{HP_tong:.2f} HP")
+        rc2.metric("LỰC KÉO HIỆU DỤNG TE", f"{Te_kN:.2f} kN", delta=f"{Te_lbs:.0f} lbs")
+        rc3.metric("LỰC CĂNG LỚN NHẤT T1", f"{T1_lbs * 0.00445:.2f} kN", delta=f"{T1_lbs:.0f} lbs")
+        rc4.metric("CƯỜNG LỰC ĐƠN VỊ (CEMA)", f"{luc_piw:.1f} PIW")
+        rc5.metric("LỰC CĂNG MÉP (XƯỞNG)", f"{luc_kgf_cm:.2f} kgf/cm")
 
         df_cema_luc = pd.DataFrame({
             "THÀNH PHẦN LỰC CẢN CEMA": [
