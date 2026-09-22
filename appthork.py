@@ -14,71 +14,99 @@ st.set_page_config(
 
 CUSTOM_CSS = """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap');
     
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
     
-    /* Chống nuốt/mất ô nhập liệu phía trên mép trang */
+    /* Chống nuốt mép trên giao diện */
     .block-container {
         padding-top: 2rem !important;
         padding-bottom: 3rem !important;
     }
     
-    /* Canh giữa & tạo khối cho KPI Metric Cards */
+    /* =========================================================================
+       1. CĂN GIỮA & IN HOA TRIỆT ĐỂ CHO TOÀN BỘ THẺ METRIC
+       ========================================================================= */
     div[data-testid="stMetric"] {
-        background: #ffffff;
-        border: 1px solid #cbd5e1;
-        border-top: 4px solid #1d4ed8;
-        border-radius: 10px;
-        padding: 14px 10px;
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-top: 4px solid #1d4ed8 !important;
+        border-radius: 10px !important;
+        padding: 14px 10px !important;
         text-align: center !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    div[data-testid="stMetricLabel"] > div {
-        width: 100%;
-        text-align: center !important;
-        font-size: 0.78rem;
-        font-weight: 700 !important;
-        color: #475569 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        display: flex;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
         justify-content: center !important;
     }
     
-    div[data-testid="stMetricValue"] {
-        width: 100%;
+    /* Tiêu đề chính của thẻ (TỔNG LỰC KÉO F, CÔNG SUẤT...) */
+    div[data-testid="stMetricLabel"],
+    div[data-testid="stMetricLabel"] *,
+    div[data-testid="stMetricLabel"] > label,
+    div[data-testid="stMetricLabel"] > div {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+        font-size: 0.82rem !important;
+        font-weight: 800 !important;
+        color: #334155 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.6px !important;
+        display: flex !important;
+    }
+    
+    /* Giá trị số to ở giữa */
+    div[data-testid="stMetricValue"],
+    div[data-testid="stMetricValue"] * {
+        width: 100% !important;
         text-align: center !important;
         font-family: 'JetBrains Mono', monospace !important;
-        font-size: 1.55rem;
-        font-weight: 700;
+        font-size: 1.55rem !important;
+        font-weight: 700 !important;
         color: #0f172a !important;
-        margin: 4px 0;
+        margin: 4px 0 !important;
+        display: block !important;
     }
 
-    div[data-testid="stMetricDelta"] {
-        width: 100%;
+    /* Dòng chú thích phụ (Delta) phía dưới */
+    div[data-testid="stMetricDelta"],
+    div[data-testid="stMetricDelta"] * {
+        width: 100% !important;
         text-align: center !important;
         justify-content: center !important;
-        font-size: 0.8rem;
-        font-weight: 600;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
         margin-top: 4px !important;
+        display: flex !important;
     }
     
     div[data-testid="stMetricDelta"] svg {
-        display: none !important; /* Ẩn mũi tên lệch tâm */
+        display: none !important;
     }
 
-    /* Tiêu đề nhóm thông số có gạch chân tâm */
+    /* =========================================================================
+       2. CĂN GIỮA & IN HOA TIÊU ĐỀ CỘT BẢNG DATAFRAME
+       ========================================================================= */
+    div[data-testid="stDataFrame"] th,
+    div[data-testid="stDataFrame"] [role="columnheader"],
+    div[data-testid="stDataFrame"] [role="columnheader"] * {
+        text-align: center !important;
+        justify-content: center !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.78rem !important;
+        letter-spacing: 0.5px !important;
+        color: #1e293b !important;
+    }
+
+    /* Tiêu đề nhóm thông số */
     .thork-card-header {
-        font-weight: 700;
+        font-weight: 800;
         font-size: 0.92rem;
         color: #1e293b;
         text-align: center;
@@ -89,7 +117,7 @@ CUSTOM_CSS = """
         letter-spacing: 0.5px;
     }
 
-    /* Banner thông số xuất xưởng căn giữa nổi bật */
+    /* Banner xuất xưởng */
     .spec-banner {
         background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
         color: #ffffff;
@@ -106,8 +134,18 @@ CUSTOM_CSS = """
         letter-spacing: 1.2px;
         text-transform: uppercase;
         color: #93c5fd;
-        font-weight: 600;
+        font-weight: 700;
     }
+    
+    .spec-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-top: 6px;
+        color: #ffffff;
+    }
+</style>
+"""
     
     .spec-value {
         font-family: 'JetBrains Mono', monospace;
@@ -358,17 +396,17 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             he_so_an_toan=he_so_an_toan,
             hieu_suat_moi_noi=0.95
         )
-        st.markdown("##### 📋 CÁC PHƯƠNG ÁN KẾT CẤU VẢI BỐ ĐỀ XUẤT:")
+        st.markdown("<h5 style='text-align: center; text-transform: uppercase; font-weight: 700; color: #1e293b;'>📋 CÁC PHƯƠNG ÁN KẾT CẤU VẢI BỐ ĐỀ XUẤT</h5>", unsafe_allow_html=True)
         st.dataframe(
             df_5_phuong_an,
             use_container_width=True,
             hide_index=True,
             column_config={
-                "KẾT CẤU": st.column_config.TextColumn("Phương án kết cấu", width=220),
-                "LOẠI VẢI ĐỀ XUẤT": st.column_config.TextColumn("Mác đề xuất", width=140),
-                "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": st.column_config.NumberColumn("Lực 1 lớp (kgf/cm)", format="%.1f", width=160),
-                "CƯỜNG LỰC TỔNG (kgf/cm)": st.column_config.NumberColumn("Cường lực tổng (kgf/cm)", format="%.1f", width=180),
-                "SF": st.column_config.TextColumn("Hệ số an toàn", width=110)
+                "KẾT CẤU": st.column_config.TextColumn("PHƯƠNG ÁN KẾT CẤU", width=220),
+                "LOẠI VẢI ĐỀ XUẤT": st.column_config.TextColumn("MÁC BĂNG ĐỀ XUẤT", width=150),
+                "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": st.column_config.NumberColumn("LỰC 1 LỚP (KGF/CM)", format="%.1f", width=160),
+                "CƯỜNG LỰC TỔNG (kgf/cm)": st.column_config.NumberColumn("CƯỜNG LỰC TỔNG (KGF/CM)", format="%.1f", width=180),
+                "SF": st.column_config.TextColumn("HỆ SỐ AN TOÀN", width=120)
             }
         )
 
