@@ -284,7 +284,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
                     margin-top: -8px;
                 ">
                     Cường lực tổng băng<br>
-                    {luc_cang_don_vi_kgf_cm:.2f} kgf/cm
+                    {luc_cang_don_vi_kgf_cm * he_so_an_toan:.2f} kgf/cm
                 </div>
                 """,
                 unsafe_allow_html=True
