@@ -39,13 +39,15 @@ div[data-testid="stMetric"] {
     justify-content: center !important;
 }
 
-div[data-testid="stMetricLabel"],
-div[data-testid="stMetricLabel"] *,
-div[data-testid="stMetricLabel"] > label,
-div[data-testid="stMetricLabel"] > div {
+[data-testid="stMetricLabel"],
+[data-testid="stMetricLabel"] *,
+[data-testid="stMetricLabel"] p,
+[data-testid="stMetricLabel"] div {
     width: 100% !important;
     text-align: center !important;
     justify-content: center !important;
+    align-items: center !important;
+    margin: 0 auto !important;
     font-size: 0.82rem !important;
     font-weight: 800 !important;
     color: #334155 !important;
