@@ -249,12 +249,14 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B / 10.0)
         luc_keo_khoi_dong_N = luc_kd_kgf_cm * (B / 10.0) * 9.80665
 
+        # Tính cường lực tổng băng ở chế độ làm việc
+        luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
+
         m1, m2, m3, m4 = st.columns(4)
 
         with m1:
             st.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_dong_co_kW:.1f} kW")
 
-            # Caption nhỏ màu xanh lá
             st.markdown(
                 f"""
                 <div style="
@@ -270,7 +272,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
                 unsafe_allow_html=True
             )
 
-         with m2:
+        with m2:
             st.metric("TỔNG LỰC KÉO F", f"{F_kN:.2f} kN")
 
             st.markdown(
@@ -288,20 +290,19 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
                 unsafe_allow_html=True
             )
 
-        m3.metric(
-            "PULLEY TIÊU CHUẨN ĐƯỢC CHỌN",
-            f"Ø {d_pulley_chuan_mm} mm",
-            delta=f"D_min: {d_min_ly_thuyet:.0f} mm"
-        )
+        with m3:
+            st.metric(
+                "PULLEY TIÊU CHUẨN ĐƯỢC CHỌN",
+                f"Ø {d_pulley_chuan_mm} mm",
+                delta=f"D_min: {d_min_ly_thuyet:.0f} mm"
+            )
 
-        m4.metric(
-            "CHU VI LIỀN TRÒN (CVLT)",
-            f"{CVLT:.2f} m",
-            delta=f"Tuyến L = {L_tuyen:.2f} m"
-        )
-
-        st.markdown("#### 🎯 GỢI Ý PHƯƠNG ÁN KẾT CẤU VẢI BỐ")
-        luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
+        with m4:
+            st.metric(
+                "CHU VI LIỀN TRÒN (CVLT)",
+                f"{CVLT:.2f} m",
+                delta=f"Tuyến L = {L_tuyen:.2f} m"
+            )
         
         df_5_phuong_an = chon_5_phuong_an_vai(
             F_cang_kgf_cm=luc_cang_don_vi_kgf_cm, 
