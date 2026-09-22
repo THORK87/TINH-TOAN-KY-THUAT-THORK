@@ -256,8 +256,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
 
         st.markdown("#### 🎯 GỢI Ý PHƯƠNG ÁN KẾT CẤU VẢI BỐ")
         luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
-        he_so_an_toan = 10.0
-
+        
         df_5_phuong_an = chon_5_phuong_an_vai(
             F_cang_kgf_cm=luc_cang_don_vi_kgf_cm, 
             he_so_an_toan=he_so_an_toan, 
