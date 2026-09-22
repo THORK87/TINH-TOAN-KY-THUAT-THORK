@@ -146,7 +146,6 @@ CUSTOM_CSS = """
     }
 </style>
 """
-    
     .spec-value {
         font-family: 'JetBrains Mono', monospace;
         font-size: 1.35rem;
