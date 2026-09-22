@@ -136,8 +136,6 @@ div[data-testid="stDataFrame"] [role="columnheader"] * {
 """
 
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
-"""
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ==============================================================================
 # DỮ LIỆU CƠ SỞ TIÊU CHUẨN
@@ -394,7 +392,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         row_kn = df_5_phuong_an[df_5_phuong_an["KẾT CẤU"].str.contains("Khuyến nghị")]
         quy_cach_de_xuat = row_kn["LOẠI VẢI ĐỀ XUẤT"].values[0] if not row_kn.empty else df_5_phuong_an["LOẠI VẢI ĐỀ XUẤT"].iloc[2]
 
-       banner_html = (
+        banner_html = (
             '<div class="spec-banner">'
             '<div class="spec-title">🚀 QUY CÁCH BĂNG TẢI THÀNH PHẨM XUẤT XƯỞNG CHUẨN HÓA</div>'
             f'<div class="spec-value">B{int(B)} x {quy_cach_de_xuat} x ({int(cao_su_tren)}+{int(cao_su_duoi)}) x {be_day_tong_mm:.1f}mm | CVLT = {CVLT:.2f} m</div>'
