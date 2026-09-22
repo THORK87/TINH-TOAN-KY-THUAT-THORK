@@ -1,7 +1,19 @@
-# 1. Thêm CSS căn chỉnh chuẩn lề và fix mất header input
+import streamlit as st
+import numpy as np
+import pandas as pd
+import math
+
+# 1. BẮT BUỘC LÀ LỆNH STREAMLIT ĐẦU TIÊN
+st.set_page_config(
+    page_title="HỆ THỐNG TÍNH TOÁN KỸ THUẬT THORK 2026", 
+    layout="wide", 
+    page_icon="⚙️"
+)
+
+# 2. SAU ĐÓ MỚI ĐẾN ĐOẠN CSS CĂN CHỈNH
 st.markdown("""
 <style>
-    /* Chống tràn/mất ô nhập liệu phía trên */
+    /* Chống mất ô nhập liệu phía trên */
     .block-container {
         padding-top: 2rem !important;
         padding-bottom: 3rem !important;
@@ -31,7 +43,7 @@ st.markdown("""
         margin-top: 4px !important;
     }
     div[data-testid="stMetricDelta"] svg {
-        display: none !important; /* Ẩn mũi tên mặc định gây lệch lề */
+        display: none !important;
     }
 
     /* Banner thông số xuất xưởng */
