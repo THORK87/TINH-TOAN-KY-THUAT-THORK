@@ -250,7 +250,7 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         luc_keo_khoi_dong_N = luc_kd_kgf_cm * (B / 10.0) * 9.80665
 
         # Tính cường lực tổng băng ở chế độ làm việc
-        luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 100.0)
+        luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
 
         m1, m2, m3, m4 = st.columns(4)
 
