@@ -386,34 +386,31 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             text_weight = "700" if is_kn else "500"
             border_left = "4px solid #2563eb" if is_kn else "1px solid #e2e8f0"
             
-            table_rows += f"""
-            <tr style="background-color: {bg_color}; font-weight: {text_weight}; border-bottom: 1px solid #e2e8f0;">
-                <td style="text-align: center; padding: 10px; border-left: {border_left};">{r['KẾT CẤU']}</td>
-                <td style="text-align: center; padding: 10px;">{r['LOẠI VẢI ĐỀ XUẤT']}</td>
-                <td style="text-align: center; padding: 10px; font-family: 'JetBrains Mono', monospace;">{r['LỰC ĐƠN VỊ 1 LỚP (kgf/cm)']:.1f}</td>
-                <td style="text-align: center; padding: 10px; font-family: 'JetBrains Mono', monospace;">{r['CƯỜNG LỰC TỔNG (kgf/cm)']:.1f}</td>
-                <td style="text-align: center; padding: 10px; font-family: 'JetBrains Mono', monospace;">{r['SF']}</td>
-            </tr>
-            """
+            table_rows += (
+                f'<tr style="background-color: {bg_color}; font-weight: {text_weight}; border-bottom: 1px solid #e2e8f0;">'
+                f'<td style="text-align: center; padding: 10px; border-left: {border_left};">{r["KẾT CẤU"]}</td>'
+                f'<td style="text-align: center; padding: 10px;">{r["LOẠI VẢI ĐỀ XUẤT"]}</td>'
+                f'<td style="text-align: center; padding: 10px; font-family: monospace;">{r["LỰC ĐƠN VỊ 1 LỚP (kgf/cm)"]:.1f}</td>'
+                f'<td style="text-align: center; padding: 10px; font-family: monospace;">{r["CƯỜNG LỰC TỔNG (kgf/cm)"]:.1f}</td>'
+                f'<td style="text-align: center; padding: 10px; font-family: monospace;">{r["SF"]}</td>'
+                f'</tr>'
+            )
             
-        html_table = f"""
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">
-            <thead>
-                <tr style="background-color: #f1f5f9; color: #1e293b; border-bottom: 2px solid #cbd5e1;">
-                    <th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">PHƯƠNG ÁN KẾT CẤU</th>
-                    <th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">MÁC BĂNG ĐỀ XUẤT</th>
-                    <th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">LỰC 1 LỚP (KGF/CM)</th>
-                    <th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">CƯỜNG LỰC TỔNG (KGF/CM)</th>
-                    <th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">HỆ SỐ AN TOÀN</th>
-                </tr>
-            </thead>
-            <tbody>
-                {table_rows}
-            </tbody>
-        </table>
-        """
+        html_table = (
+            '<table style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">'
+            '<thead>'
+            '<tr style="background-color: #f1f5f9; color: #1e293b; border-bottom: 2px solid #cbd5e1;">'
+            '<th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">PHƯƠNG ÁN KẾT CẤU</th>'
+            '<th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">MÁC BĂNG ĐỀ XUẤT</th>'
+            '<th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">LỰC 1 LỚP (KGF/CM)</th>'
+            '<th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">CƯỜNG LỰC TỔNG (KGF/CM)</th>'
+            '<th style="text-align: center; padding: 12px 10px; text-transform: uppercase; font-weight: 800;">HỆ SỐ AN TOÀN</th>'
+            '</tr>'
+            '</thead>'
+            f'<tbody>{table_rows}</tbody>'
+            '</table>'
+        )
         st.markdown(html_table, unsafe_allow_html=True)
-
         row_kn = df_5_phuong_an[df_5_phuong_an["KẾT CẤU"].str.contains("Khuyến nghị")]
         quy_cach_de_xuat = row_kn["LOẠI VẢI ĐỀ XUẤT"].values[0] if not row_kn.empty else df_5_phuong_an["LOẠI VẢI ĐỀ XUẤT"].iloc[2]
 
