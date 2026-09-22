@@ -245,14 +245,28 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
         st.divider()
         st.subheader("📊 KẾT QUẢ TÍNH TOÁN KỸ THUẬT & PULLEY")
 
-      # Tính lực kéo khởi động quy đổi ra kgf/cm theo khổ rộng B
-        luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B/10.0 )
+              # Tính lực kéo khởi động tổng, quy đổi từ kgf/cm sang N
+        luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B / 10.0)
+        luc_keo_khoi_dong_N = luc_kd_kgf_cm * (B / 10.0) * 9.80665
 
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_dong_co_kW:.1f} kW")
-        m2.metric("TỔNG LỰC KÉO F", f"{F_kN:.2f} kN", delta=f"{luc_kd_kgf_cm:.2f} kgf/cm (kđ)")
-        m3.metric("PULLEY TIÊU CHUẨN ĐƯỢC CHỌN", f"Ø {d_pulley_chuan_mm} mm", delta=f"D_min: {d_min_ly_thuyet:.0f} mm")
-        m4.metric("CHU VI LIỀN TRÒN (CVLT)", f"{CVLT:.2f} m", delta=f"Tuyến L = {L_tuyen:.2f} m")
+
+        # Đặt lực kéo khởi động N bên dưới công suất động cơ
+        with m1:
+            st.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_dong_co_kW:.1f} kW")
+            st.metric("LỰC KÉO KHỞI ĐỘNG", f"{luc_keo_khoi_dong_N:,.0f} N")
+
+        m2.metric("TỔNG LỰC KÉO F", f"{F_kN:.2f} kN")
+        m3.metric(
+            "PULLEY TIÊU CHUẨN ĐƯỢC CHỌN",
+            f"Ø {d_pulley_chuan_mm} mm",
+            delta=f"D_min: {d_min_ly_thuyet:.0f} mm"
+        )
+        m4.metric(
+            "CHU VI LIỀN TRÒN (CVLT)",
+            f"{CVLT:.2f} m",
+            delta=f"Tuyến L = {L_tuyen:.2f} m"
+        )
 
         st.markdown("#### 🎯 GỢI Ý PHƯƠNG ÁN KẾT CẤU VẢI BỐ")
         luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
