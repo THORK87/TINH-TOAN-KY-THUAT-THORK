@@ -20,13 +20,19 @@ CUSTOM_CSS = """
         font-family: 'Inter', sans-serif;
     }
     
+    /* Chống nuốt/mất ô nhập liệu phía trên mép trang */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 3rem !important;
+    }
+    
     /* Canh giữa & tạo khối cho KPI Metric Cards */
     div[data-testid="stMetric"] {
         background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-top: 4px solid #2563eb;
+        border: 1px solid #cbd5e1;
+        border-top: 4px solid #1d4ed8;
         border-radius: 10px;
-        padding: 16px 10px;
+        padding: 14px 10px;
         text-align: center !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         display: flex;
@@ -35,34 +41,39 @@ CUSTOM_CSS = """
         justify-content: center;
     }
     
-    div[data-testid="stMetricLabel"] {
+    div[data-testid="stMetricLabel"] > div {
         width: 100%;
         text-align: center !important;
         font-size: 0.78rem;
-        font-weight: 700;
-        color: #475569;
+        font-weight: 700 !important;
+        color: #475569 !important;
         text-transform: uppercase;
         letter-spacing: 0.6px;
         display: flex;
-        justify-content: center;
+        justify-content: center !important;
     }
     
     div[data-testid="stMetricValue"] {
         width: 100%;
         text-align: center !important;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: 'JetBrains Mono', monospace !important;
         font-size: 1.55rem;
         font-weight: 700;
-        color: #0f172a;
+        color: #0f172a !important;
         margin: 4px 0;
     }
 
     div[data-testid="stMetricDelta"] {
         width: 100%;
         text-align: center !important;
-        justify-content: center;
+        justify-content: center !important;
         font-size: 0.8rem;
         font-weight: 600;
+        margin-top: 4px !important;
+    }
+    
+    div[data-testid="stMetricDelta"] svg {
+        display: none !important; /* Ẩn mũi tên lệch tâm */
     }
 
     /* Tiêu đề nhóm thông số có gạch chân tâm */
@@ -84,7 +95,7 @@ CUSTOM_CSS = """
         color: #ffffff;
         border-radius: 10px;
         padding: 18px 24px;
-        margin: 20px 0;
+        margin-top: 24px !important;
         text-align: center;
         box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
         border: 1px solid #3b82f6;
@@ -341,7 +352,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         m3.metric("PULLEY TIÊU CHUẨN", f"Ø {d_pulley_chuan_mm} mm", f"D_min tính: {d_min_ly_thuyet:.0f} mm")
         m4.metric("CHU VI LIỀN TRÒN (CVLT)", f"{CVLT:.2f} m", f"Tuyến L = {L_tuyen:.2f} m")
 
-        # Bảng phương án vải bố căn lề chuẩn
+        # Bảng phương án vải bố căn lề & khóa pixel chuẩn
         df_5_phuong_an = chon_5_phuong_an_vai(
             F_cang_kgf_cm=luc_cang_don_vi_kgf_cm,
             he_so_an_toan=he_so_an_toan,
@@ -353,11 +364,11 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             use_container_width=True,
             hide_index=True,
             column_config={
-                "KẾT CẤU": st.column_config.TextColumn("Phương án kết cấu", width="medium"),
-                "LOẠI VẢI ĐỀ XUẤT": st.column_config.TextColumn("Mác băng đề xuất", width="small"),
-                "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": st.column_config.NumberColumn("Lực 1 lớp (kgf/cm)", format="%.1f"),
-                "CƯỜNG LỰC TỔNG (kgf/cm)": st.column_config.NumberColumn("Cường lực tổng (kgf/cm)", format="%.1f"),
-                "SF": st.column_config.TextColumn("Hệ số an toàn", width="small")
+                "KẾT CẤU": st.column_config.TextColumn("Phương án kết cấu", width=220),
+                "LOẠI VẢI ĐỀ XUẤT": st.column_config.TextColumn("Mác đề xuất", width=140),
+                "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": st.column_config.NumberColumn("Lực 1 lớp (kgf/cm)", format="%.1f", width=160),
+                "CƯỜNG LỰC TỔNG (kgf/cm)": st.column_config.NumberColumn("Cường lực tổng (kgf/cm)", format="%.1f", width=180),
+                "SF": st.column_config.TextColumn("Hệ số an toàn", width=110)
             }
         )
 
@@ -536,10 +547,10 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             use_container_width=True,
             hide_index=True,
             column_config={
-                "THÀNH PHẦN LỰC CẢN CEMA": st.column_config.TextColumn("Thành phần lực cản", width="large"),
-                "GIÁ TRỊ (lbs)": st.column_config.NumberColumn("Giá trị (lbs)", format="%.1f"),
-                "GIÁ TRỊ (kN)": st.column_config.NumberColumn("Giá trị (kN)", format="%.2f"),
-                "TỶ TRỌNG (%)": st.column_config.NumberColumn("Tỷ trọng (%)", format="%.1f%%")
+                "THÀNH PHẦN LỰC CẢN CEMA": st.column_config.TextColumn("Thành phần lực cản", width=260),
+                "GIÁ TRỊ (lbs)": st.column_config.NumberColumn("Giá trị (lbs)", format="%.1f", width=140),
+                "GIÁ TRỊ (kN)": st.column_config.NumberColumn("Giá trị (kN)", format="%.2f", width=140),
+                "TỶ TRỌNG (%)": st.column_config.NumberColumn("Tỷ trọng (%)", format="%.1f%%", width=130)
             }
         )
 
@@ -691,10 +702,10 @@ elif module_chon == "M2: CÔNG NGHỆ ÉP THỦY LỰC & LƯU HÓA":
             use_container_width=True,
             hide_index=True,
             column_config={
-                "CẤP CHÍNH XÁC": st.column_config.TextColumn("Cấp chính xác", width="medium"),
-                "DUNG SAI CHO PHÉP": st.column_config.TextColumn("Dung sai cho phép", width="small"),
-                "GIỚI HẠN DƯỚI (mm)": st.column_config.NumberColumn("Giới hạn dưới (mm)", format="%.2f"),
-                "GIỚI HẠN TRÊN (mm)": st.column_config.NumberColumn("Giới hạn trên (mm)", format="%.2f")
+                "CẤP CHÍNH XÁC": st.column_config.TextColumn("Cấp chính xác", width=220),
+                "DUNG SAI CHO PHÉP": st.column_config.TextColumn("Dung sai cho phép", width=160),
+                "GIỚI HẠN DƯỚI (mm)": st.column_config.NumberColumn("Giới hạn dưới (mm)", format="%.2f", width=180),
+                "GIỚI HẠN TRÊN (mm)": st.column_config.NumberColumn("Giới hạn trên (mm)", format="%.2f", width=180)
             }
         )
 
@@ -732,10 +743,10 @@ elif module_chon == "M3: ĐƠN COMPOUND & TRUYỀN ĐỘNG ĐAI":
             num_rows="dynamic",
             use_container_width=True,
             column_config={
-                "STT": st.column_config.NumberColumn("STT", width="small"),
-                "VẬT TƯ": st.column_config.TextColumn("Vật tư", width="large"),
-                "KHỐI LƯỢNG (kg)": st.column_config.NumberColumn("Khối lượng (kg)", format="%.3f"),
-                "TỶ TRỌNG RIÊNG": st.column_config.NumberColumn("Tỷ trọng riêng", format="%.3f")
+                "STT": st.column_config.NumberColumn("STT", width=80),
+                "VẬT TƯ": st.column_config.TextColumn("Vật tư", width=220),
+                "KHỐI LƯỢNG (kg)": st.column_config.NumberColumn("Khối lượng (kg)", format="%.3f", width=160),
+                "TỶ TRỌNG RIÊNG": st.column_config.NumberColumn("Tỷ trọng riêng", format="%.3f", width=140)
             }
         )
 
@@ -760,12 +771,12 @@ elif module_chon == "M3: ĐƠN COMPOUND & TRUYỀN ĐỘNG ĐAI":
             use_container_width=True,
             hide_index=True,
             column_config={
-                "STT": st.column_config.NumberColumn("STT", width="small"),
-                "VẬT TƯ": st.column_config.TextColumn("Vật tư", width="large"),
-                "KHỐI LƯỢNG (kg)": st.column_config.NumberColumn("Khối lượng (kg)", format="%.3f"),
-                "TỶ LỆ (%)": st.column_config.NumberColumn("Tỷ lệ (%)", format="%.2f%%"),
-                "TỶ TRỌNG RIÊNG": st.column_config.NumberColumn("Tỷ trọng", format="%.3f"),
-                "THỂ TÍCH (Lít)": st.column_config.NumberColumn("Thể tích (Lít)", format="%.3f")
+                "STT": st.column_config.NumberColumn("STT", width=80),
+                "VẬT TƯ": st.column_config.TextColumn("Vật tư", width=220),
+                "KHỐI LƯỢNG (kg)": st.column_config.NumberColumn("Khối lượng (kg)", format="%.3f", width=140),
+                "TỶ LỆ (%)": st.column_config.NumberColumn("Tỷ lệ (%)", format="%.2f%%", width=120),
+                "TỶ TRỌNG RIÊNG": st.column_config.NumberColumn("Tỷ trọng", format="%.3f", width=120),
+                "THỂ TÍCH (Lít)": st.column_config.NumberColumn("Thể tích (Lít)", format="%.3f", width=140)
             }
         )
 
