@@ -173,12 +173,17 @@ DAY_PULLEY_CHUAN = [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1400, 1600]
 
 def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.95):
     danh_sach_ep = [100, 125, 150, 200, 250, 300, 400, 500]
-    tong_luc_yeu_cau = F_cang_kgf_cm * he_so_an_toan * hieu_suat_moi_noi
+    # Lực tổng danh nghĩa theo thiết kế (KHÔNG giảm 0.95)
+    tong_luc_danh_nghia = F_cang_kgf_cm * he_so_an_toan
 
     ket_qua = []
     for n in [2, 3, 4, 5, 6]:
-        luc_1_lop = tong_luc_yeu_cau / n
-        mac_chon = next((ep for ep in danh_sach_ep if ep >= luc_1_lop), None)
+        # Lực 1 lớp thực tế chịu tải (KHÔNG giảm 0.95)
+        luc_1_lop_thuc = tong_luc_danh_nghia / n
+        
+        # Chỉ nhân 0.95 khi so sánh để chọn mác vải
+        luc_tra_mac = luc_1_lop_thuc * hieu_suat_moi_noi
+        mac_chon = next((ep for ep in danh_sach_ep if ep >= luc_tra_mac), None)
         
         ten_pa = f"Phương án {n} lớp ({n}P)"
         if mac_chon:
@@ -192,7 +197,7 @@ def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.
             "n": n,
             "KẾT CẤU": ten_pa,
             "LOẠI VẢI ĐỀ XUẤT": de_xuat,
-            "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": round(luc_1_lop, 1),
+            "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": round(luc_1_lop_thuc, 1),
             "CƯỜNG LỰC TỔNG (kgf/cm)": (mac_chon * n) if mac_chon else 0.0,
             "SF": f"{he_so_an_toan:.1f}",
             "hop_le": hop_le,
