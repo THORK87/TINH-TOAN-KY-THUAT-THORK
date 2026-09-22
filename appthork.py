@@ -379,7 +379,6 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         )
         st.markdown("<h5 style='text-align: center; text-transform: uppercase; font-weight: 700; color: #1e293b; margin-top: 18px;'>📋 CÁC PHƯƠNG ÁN KẾT CẤU VẢI BỐ ĐỀ XUẤT</h5>", unsafe_allow_html=True)
         
-        # Render bảng HTML trực tiếp để căn giữa 100% cả đề mục lẫn dữ liệu
         table_rows = ""
         for _, r in df_5_phuong_an.iterrows():
             is_kn = "Khuyến nghị" in str(r["KẾT CẤU"])
