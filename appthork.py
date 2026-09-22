@@ -71,7 +71,7 @@ def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.
             "n": n,
             "KẾT CẤU": ten_pa,
             "LOẠI VẢI ĐỀ XUẤT": de_xuat,
-            "LỰC CHỊU MỖI LỚP (kgf/cm)": round(luc_1_lop, 1),
+            "LỰC TỔNG BĂNG THIẾT KẾ (kgf/cm)": round(luc_1_lop * n, 1),
             "HỆ SỐ AN TOÀN (SF)": f"{he_so_an_toan:.1f}",
             "hop_le": hop_le,
             "mac_ep": mac_chon if mac_chon else 9999
