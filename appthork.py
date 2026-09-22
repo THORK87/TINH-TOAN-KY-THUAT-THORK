@@ -270,7 +270,23 @@ if module_chon == "MODULE 1: THIẾT KẾ BĂNG TẢI (DIN 22101 & CEMA / RULMEC
                 unsafe_allow_html=True
             )
 
-        m2.metric("TỔNG LỰC KÉO F", f"{F_kN:.2f} kN")
+         with m2:
+            st.metric("TỔNG LỰC KÉO F", f"{F_kN:.2f} kN")
+
+            st.markdown(
+                f"""
+                <div style="
+                    color: #16a34a;
+                    font-size: 0.82rem;
+                    font-weight: 600;
+                    margin-top: -8px;
+                ">
+                    Cường lực tổng băng<br>
+                    {luc_cang_don_vi_kgf_cm:.2f} kgf/cm
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
         m3.metric(
             "PULLEY TIÊU CHUẨN ĐƯỢC CHỌN",
