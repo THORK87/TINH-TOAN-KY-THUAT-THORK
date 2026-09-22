@@ -188,16 +188,16 @@ def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.
             de_xuat = f"{n}P(>EP500 - ST)"
             hop_le = False
             
-       ket_qua.append({
-        "n": n,
-        "KẾT CẤU": ten_pa,
-        "LOẠI VẢI ĐỀ XUẤT": de_xuat,
-        "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": round(luc_1_lop, 1),
-        "CƯỜNG LỰC TỔNG (kgf/cm)": (mac_chon * n) if mac_chon else 0.0,
-        "SF": f"{he_so_an_toan:.1f}",
-        "hop_le": hop_le,
-        "mac_ep": mac_chon if mac_chon else 9999
-    })
+        ket_qua.append({
+            "n": n,
+            "KẾT CẤU": ten_pa,
+            "LOẠI VẢI ĐỀ XUẤT": de_xuat,
+            "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": round(luc_1_lop, 1),
+            "CƯỜNG LỰC TỔNG (kgf/cm)": (mac_chon * n) if mac_chon else 0.0,
+            "SF": f"{he_so_an_toan:.1f}",
+            "hop_le": hop_le,
+            "mac_ep": mac_chon if mac_chon else 9999
+        })
 
     pa_dat = [p for p in ket_qua if p["hop_le"]]
     pa_khuyen_nghi_idx = None
@@ -213,7 +213,6 @@ def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.
         del p["n"], p["hop_le"], p["mac_ep"]
 
     return pd.DataFrame(ket_qua)
-
 def lam_tron_pulley_chuan(d_calc_mm):
     for d in DAY_PULLEY_CHUAN:
         if d >= d_calc_mm:
