@@ -301,17 +301,18 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
     with tab1:
         c1, c2, c3 = st.columns(3)
+
         with c1:
             st.markdown('<div class="thork-card-header">📍 THÔNG SỐ TUYẾN</div>', unsafe_allow_html=True)
             B = st.number_input("Khổ rộng băng B (mm):", value=800.0, step=50.0)
             c_mode = st.radio("Cách nhập kích thước:", ["Chiều dài tuyến (L)", "Chu vi liền tròn (CVLT)"], horizontal=True)
 
             if c_mode == "Chiều dài tuyến (L)":
-            L_input = st.number_input("Chiều dài tuyến L (m):", value=200.0, step=5.0)
-            L_tuyen_est = L_input
+                L_input = st.number_input("Chiều dài tuyến L (m):", value=200.0, step=5.0)
+                L_tuyen_est = L_input
             else:
-            CVLT_input = st.number_input("Chu vi liền tròn CVLT (m):", value=400.0, step=5.0)
-            L_tuyen_est = CVLT_input / 2.0
+                CVLT_input = st.number_input("Chu vi liền tròn CVLT (m):", value=400.0, step=5.0)
+                L_tuyen_est = CVLT_input / 2.0
 
             alpha_deg = st.number_input("Góc dốc băng tải (°):", value=23.0, step=1.0)
 
@@ -329,12 +330,8 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             st.markdown('<div class="thork-card-header">🛡️ KẾT CẤU & TANG PULLEY</div>', unsafe_allow_html=True)
             cao_su_tren = st.number_input("Bề dày cao su trên (mm):", value=4.0, step=0.5)
             cao_su_duoi = st.number_input("Bề dày cao su dưới (mm):", value=2.0, step=0.5)
-            hieu_suat = st.number_input("Hiệu suất truyền động (η):", value=0.85, step=0.05)
-            he_so_vai = 0.95
-
+            hieu_suat = st.number_input("Hiệu suất truyền động (η):", value=0.85, step=0.01)
             auto_pulley = st.checkbox("Tự động chuẩn hóa Pulley (D_min)", value=True)
-            if not auto_pulley:
-                D_pulley_custom = st.number_input("Đường kính Pulley tự nhập (mm):", value=630, step=50)
 
         # Tính toán DIN 22101
         L_tuyen_est = L_input if c_mode == "Chiều dài tuyến (L)" else (CVLT_input / 2.0)
