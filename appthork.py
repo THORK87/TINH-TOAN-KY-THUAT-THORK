@@ -171,6 +171,15 @@ DANH_SACH_MAY_EP = [
 
 DAY_PULLEY_CHUAN = [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1400, 1600]
 
+def tinh_he_so_C_din(L):
+    """Hệ số chiều dài C(L) theo DIN 22101 / ISO 5048 Bảng 1"""
+    if L <= 20.0:
+        return 3.5
+    elif L >= 2000.0:
+        return 1.02
+    else:
+        c_val = 1.0 + (3.5 - 1.0) * math.exp(-(L - 20.0) / 180.0)
+        return round(max(c_val, 1.05), 2)
 def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.95):
     danh_sach_ep = [100, 125, 150, 200, 250, 300, 400, 500]
     # Lực tổng danh nghĩa theo thiết kế (KHÔNG giảm 0.95)
@@ -308,7 +317,9 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             st.markdown('<div class="thork-card-header">⚙️ VẬN HÀNH & NĂNG SUẤT</div>', unsafe_allow_html=True)
             Q = st.number_input("Năng suất vận chuyển Q (t/h):", value=400.0, step=10.0)
             V = st.number_input("Vận tốc băng V (m/s):", value=1.0, step=0.1)
-            mu = st.number_input("Hệ số ma sát con lăn (f):", value=0.07, step=0.01, format="%.2f")
+            muf0_din = 0.020
+C_din_view = tinh_he_so_C_din(L_tuyen_est)
+st.caption(f"⚙️ *DIN 22101 tự động:* $f_0 = 0.020$ | $C(L) = {C_din_view:.2f}$ *(f gộp = {f0_din * C_din_view:.3f})*") = st.number_input
             he_so_an_toan = st.number_input("Hệ số an toàn thiết kế (SF):", value=10.0, step=0.5)
 
         with c3:
@@ -350,7 +361,9 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
         sf_start = tinh_sf_start(L_tuyen)
         FH = (m_vl + m2_bang) * 9.81 * sin_alpha * L_tuyen
-        FF = (m_vl + m2_bang) * 9.81 * mu * L_tuyen
+        C_din = tinh_he_so_C_din(L_tuyen)
+cos_alpha = math.cos(math.radians(alpha_deg))
+FF = C_din * (m_vl + m2_bang) * 9.81 * 0.020 * L_tuyen * cos_alpha
         F_kN = (FH + FF) / 1000.0
         P_dong_co_kW = (F_kN * V / hieu_suat) * sf_start
         luc_keo_kgf_cm = (F_kN * sf_start * 101.972) / (B / 10.0)
