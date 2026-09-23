@@ -301,7 +301,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
     with tab1:
         c1, c2, c3 = st.columns(3)
-        with c1:
+with c1:
     st.markdown('<div class="thork-card-header">📍 THÔNG SỐ TUYẾN</div>', unsafe_allow_html=True)
     B = st.number_input("Khổ rộng băng B (mm):", value=800.0, step=50.0)
     c_mode = st.radio("Cách nhập kích thước:", ["Chiều dài tuyến (L)", "Chu vi liền tròn (CVLT)"], horizontal=True)
