@@ -319,7 +319,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             V = st.number_input("Vận tốc băng V (m/s):", value=1.0, step=0.1)
             muf0_din = 0.020
 C_din_view = tinh_he_so_C_din(L_tuyen_est)
-st.caption(f"⚙️ *DIN 22101 tự động:* $f_0 = 0.020$ | $C(L) = {C_din_view:.2f}$ *(f gộp = {f0_din * C_din_view:.3f})*") = st.number_input
+st.caption(f"⚙️ *DIN 22101 tự động:* $f_0 = 0.020$ | $C(L) = {C_din_view:.2f}$ *(f gộp = {f0_din * C_din_view:.3f})*")
             he_so_an_toan = st.number_input("Hệ số an toàn thiết kế (SF):", value=10.0, step=0.5)
 
         with c3:
