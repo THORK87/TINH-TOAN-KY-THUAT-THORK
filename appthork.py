@@ -301,29 +301,29 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
     with tab1:
         c1, c2, c3 = st.columns(3)
-with c1:
-    st.markdown('<div class="thork-card-header">📍 THÔNG SỐ TUYẾN</div>', unsafe_allow_html=True)
-    B = st.number_input("Khổ rộng băng B (mm):", value=800.0, step=50.0)
-    c_mode = st.radio("Cách nhập kích thước:", ["Chiều dài tuyến (L)", "Chu vi liền tròn (CVLT)"], horizontal=True)
+        with c1:
+            st.markdown('<div class="thork-card-header">📍 THÔNG SỐ TUYẾN</div>', unsafe_allow_html=True)
+            B = st.number_input("Khổ rộng băng B (mm):", value=800.0, step=50.0)
+            c_mode = st.radio("Cách nhập kích thước:", ["Chiều dài tuyến (L)", "Chu vi liền tròn (CVLT)"], horizontal=True)
 
-    if c_mode == "Chiều dài tuyến (L)":
-        L_input = st.number_input("Chiều dài tuyến L (m):", value=200.0, step=5.0)
-        L_tuyen_est = L_input
-    else:
-        CVLT_input = st.number_input("Chu vi liền tròn CVLT (m):", value=400.0, step=5.0)
-        L_tuyen_est = CVLT_input / 2.0
+            if c_mode == "Chiều dài tuyến (L)":
+            L_input = st.number_input("Chiều dài tuyến L (m):", value=200.0, step=5.0)
+            L_tuyen_est = L_input
+            else:
+            CVLT_input = st.number_input("Chu vi liền tròn CVLT (m):", value=400.0, step=5.0)
+            L_tuyen_est = CVLT_input / 2.0
 
-    alpha_deg = st.number_input("Góc dốc băng tải (°):", value=23.0, step=1.0)
+            alpha_deg = st.number_input("Góc dốc băng tải (°):", value=23.0, step=1.0)
 
-with c2:
-    st.markdown('<div class="thork-card-header">⚙️ VẬN HÀNH & NĂNG SUẤT</div>', unsafe_allow_html=True)
-    Q = st.number_input("Năng suất vận chuyển Q (t/h):", value=400.0, step=10.0)
-    V = st.number_input("Vận tốc băng V (m/s):", value=1.0, step=0.1)
+        with c2:
+            st.markdown('<div class="thork-card-header">⚙️ VẬN HÀNH & NĂNG SUẤT</div>', unsafe_allow_html=True)
+            Q = st.number_input("Năng suất vận chuyển Q (t/h):", value=400.0, step=10.0)
+            V = st.number_input("Vận tốc băng V (m/s):", value=1.0, step=0.1)
 
-    f0_din = 0.020
-    C_din_view = tinh_he_so_C_din(L_tuyen_est)
-    st.caption(f"⚙️ *DIN 22101 tự động:* $f_0 = 0.020$ | $C(L) = {C_din_view:.2f}$ *(f gộp = {f0_din * C_din_view:.3f})*")
-    he_so_an_toan = st.number_input("Hệ số an toàn thiết kế (SF):", value=10.0, step=0.5)
+            f0_din = 0.020
+            C_din_view = tinh_he_so_C_din(L_tuyen_est)
+            st.caption(f"⚙️ *DIN 22101 tự động:* $f_0 = 0.020$ | $C(L) = {C_din_view:.2f}$ *(f gộp = {f0_din * C_din_view:.3f})*")
+            he_so_an_toan = st.number_input("Hệ số an toàn thiết kế (SF):", value=10.0, step=0.5)
 
         with c3:
             st.markdown('<div class="thork-card-header">🛡️ KẾT CẤU & TANG PULLEY</div>', unsafe_allow_html=True)
