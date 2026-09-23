@@ -171,15 +171,6 @@ DANH_SACH_MAY_EP = [
 
 DAY_PULLEY_CHUAN = [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1400, 1600]
 
-def tinh_he_so_C_din(L):
-    """Hệ số chiều dài C(L) theo DIN 22101 / ISO 5048 Bảng 1"""
-    if L <= 20.0:
-        return 3.5
-    elif L >= 2000.0:
-        return 1.02
-    else:
-        c_val = 1.0 + (3.5 - 1.0) * math.exp(-(L - 20.0) / 180.0)
-        return round(max(c_val, 1.05), 2)
 def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.95):
     danh_sach_ep = [100, 125, 150, 200, 250, 300, 400, 500]
     # Lực tổng danh nghĩa theo thiết kế (KHÔNG giảm 0.95)
@@ -301,18 +292,15 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
     with tab1:
         c1, c2, c3 = st.columns(3)
-
         with c1:
             st.markdown('<div class="thork-card-header">📍 THÔNG SỐ TUYẾN</div>', unsafe_allow_html=True)
-            B = st.number_input("Khổ rộng băng B (mm):", value=800.0, step=50.0)
+            B = st.number_input("Khổ rộng băng B (mm):", value=800, step=50)
             c_mode = st.radio("Cách nhập kích thước:", ["Chiều dài tuyến (L)", "Chu vi liền tròn (CVLT)"], horizontal=True)
-
+            
             if c_mode == "Chiều dài tuyến (L)":
                 L_input = st.number_input("Chiều dài tuyến L (m):", value=200.0, step=5.0)
-                L_tuyen_est = L_input
             else:
                 CVLT_input = st.number_input("Chu vi liền tròn CVLT (m):", value=400.0, step=5.0)
-                L_tuyen_est = CVLT_input / 2.0
 
             alpha_deg = st.number_input("Góc dốc băng tải (°):", value=23.0, step=1.0)
 
@@ -320,18 +308,19 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             st.markdown('<div class="thork-card-header">⚙️ VẬN HÀNH & NĂNG SUẤT</div>', unsafe_allow_html=True)
             Q = st.number_input("Năng suất vận chuyển Q (t/h):", value=400.0, step=10.0)
             V = st.number_input("Vận tốc băng V (m/s):", value=1.0, step=0.1)
-
-            f0_din = 0.020
-            C_din_view = tinh_he_so_C_din(L_tuyen_est)
-            st.caption(f"⚙️ *DIN 22101 tự động:* $f_0 = 0.020$ | $C(L) = {C_din_view:.2f}$ *(f gộp = {f0_din * C_din_view:.3f})*")
+            mu = st.number_input("Hệ số ma sát con lăn (f):", value=0.07, step=0.01, format="%.2f")
             he_so_an_toan = st.number_input("Hệ số an toàn thiết kế (SF):", value=10.0, step=0.5)
 
         with c3:
             st.markdown('<div class="thork-card-header">🛡️ KẾT CẤU & TANG PULLEY</div>', unsafe_allow_html=True)
             cao_su_tren = st.number_input("Bề dày cao su trên (mm):", value=4.0, step=0.5)
             cao_su_duoi = st.number_input("Bề dày cao su dưới (mm):", value=2.0, step=0.5)
-            hieu_suat = st.number_input("Hiệu suất truyền động (η):", value=0.85, step=0.01)
+            hieu_suat = st.number_input("Hiệu suất truyền động (η):", value=0.85, step=0.05)
+            he_so_vai = 0.95
+
             auto_pulley = st.checkbox("Tự động chuẩn hóa Pulley (D_min)", value=True)
+            if not auto_pulley:
+                D_pulley_custom = st.number_input("Đường kính Pulley tự nhập (mm):", value=630, step=50)
 
         # Tính toán DIN 22101
         L_tuyen_est = L_input if c_mode == "Chiều dài tuyến (L)" else (CVLT_input / 2.0)
@@ -361,9 +350,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
         sf_start = tinh_sf_start(L_tuyen)
         FH = (m_vl + m2_bang) * 9.81 * sin_alpha * L_tuyen
-        C_din = tinh_he_so_C_din(L_tuyen)
-cos_alpha = math.cos(math.radians(alpha_deg))
-FF = C_din * (m_vl + m2_bang) * 9.81 * 0.020 * L_tuyen * cos_alpha
+        FF = (m_vl + m2_bang) * 9.81 * mu * L_tuyen
         F_kN = (FH + FF) / 1000.0
         P_dong_co_kW = (F_kN * V / hieu_suat) * sf_start
         luc_keo_kgf_cm = (F_kN * sf_start * 101.972) / (B / 10.0)
