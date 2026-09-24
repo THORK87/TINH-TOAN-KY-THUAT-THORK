@@ -377,7 +377,12 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
                     vai_chuan_thuc = v_name
                     break
 
-        # BƯỚC 2: TÍNH CHÍNH XÁC TRỌNG LƯỢNG 1M BĂNG (BÓC TÁCH 3 THÀNH PHẦN THEO ĐỊNH MỨC XƯỞNG)
+        # Tra cứu định mức vải (Đảm bảo luôn chạy trước Bước 2)
+        row_vai = DF_TIEUCHUAN_VAI[DF_TIEUCHUAN_VAI["LOAI_VAI"] == vai_chuan_thuc].iloc[0]
+        tl_vai_m2 = float(row_vai["TL_M2"]) / 1000.0           # Đổi từ g/m2 sang kg/m2
+        day_trang_1_lop = float(row_vai.get("DAY_TRANG", 0.76)) # Bề dày tráng nén (mm)
+
+        # BƯỚC 2: TÍNH CHÍNH XÁC TRỌNG LƯỢNG 1M BĂNG
         m_cs_mat = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat
         m_vai_moc = kho_m * n_lop_thuc * tl_vai_m2
         m_cs_trang = kho_m * (n_lop_thuc * day_trang_1_lop) * tt_cs_trang
