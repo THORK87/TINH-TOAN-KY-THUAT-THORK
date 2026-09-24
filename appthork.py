@@ -377,21 +377,11 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
                     vai_chuan_thuc = v_name
                     break
 
-        row_vai = DF_TIEUCHUAN_VAI[DF_TIEUCHUAN_VAI["LOAI_VAI"] == vai_chuan_thuc].iloc[0]
-        tl_vai_m2 = row_vai["TL_M2"] / 1000.0          # Đổi g/m2 sang kg/m2[cite: 2]
-        day_trang_1_lop = row_vai.get("DAY_TRANG", 0.76) # Bề dày tráng nén thực tế mỗi lớp (mm)[cite: 2]
-
         # BƯỚC 2: TÍNH CHÍNH XÁC TRỌNG LƯỢNG 1M BĂNG (BÓC TÁCH 3 THÀNH PHẦN THEO ĐỊNH MỨC XƯỞNG)
-        m_cs_mat = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat[cite: 2]
-        m_vai_moc = kho_m * n_lop_thuc * tl_vai_m2[cite: 2]
-        m_cs_trang = kho_m * (n_lop_thuc * day_trang_1_lop) * tt_cs_trang[cite: 2]
-        m2_bang = round(m_cs_mat + m_vai_moc + m_cs_trang, 2)[cite: 2]
-
-        # BƯỚC 3: TÍNH TOÁN LỰC & CÔNG SUẤT CHÍNH THỨC
-        be_day_tong_mm = n_lop_thuc * row_vai["BE_DAY"] + cao_su_tren + cao_su_duoi
-        d_min_ly_thuyet = 25.0 * be_day_tong_mm
-        d_pulley_chuan_mm = lam_tron_pulley_chuan(d_min_ly_thuyet) if auto_pulley else D_pulley_custom
-        d_pulley_chuan_m = d_pulley_chuan_mm / 1000.0
+        m_cs_mat = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat
+        m_vai_moc = kho_m * n_lop_thuc * tl_vai_m2
+        m_cs_trang = kho_m * (n_lop_thuc * day_trang_1_lop) * tt_cs_trang
+        m2_bang = round(m_cs_mat + m_vai_moc + m_cs_trang, 2)
 
         if c_mode == "Chiều dài tuyến (L)":
             L_tuyen = L_input
