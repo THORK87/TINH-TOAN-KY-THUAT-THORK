@@ -501,9 +501,8 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
                 L_cema_m = float(L_tuyen)
                 Q_cema_th = float(Q)
                 V_cema_ms = float(V)
-                # Tự động tính H từ góc dốc alpha của Tab 1: H = L * sin(alpha)
                 H_cema_m = float(L_tuyen * math.sin(math.radians(alpha_deg)))
-                
+
                 st.info(f"Đang đồng bộ từ Tab 1:\n- Khổ B: **{B_cema_mm:.0f} mm**\n- Tuyến L: **{L_cema_m:.2f} m**\n- Góc dốc: **{alpha_deg:.1f}°** $\\to$ Nâng cao H: **{H_cema_m:.2f} m**\n- Năng suất Q: **{Q_cema_th:.1f} t/h** | V: **{V_cema_ms:.2f} m/s**")
             else:
                 B_cema_mm = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=float(B), step=50.0, key="cema_B")
@@ -523,15 +522,13 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
         with c_cema3:
             st.markdown("##### 🎯 THÔNG SỐ TANG TRỐNG")
-            # Đồng bộ đường kính Tang tiêu chuẩn vừa chọn ở Tab 1
             dk_default = float(d_pulley_chuan_mm) if (dong_bo and 'd_pulley_chuan_mm' in locals()) else 320.0
             dk_tang_cema_mm = st.number_input("ĐƯỜNG KÍNH TANG CHỦ ĐỘNG (mm):", value=dk_default, step=20.0)
             boc_cao_su_mm = st.number_input("BỀ DÀY BỌC CAO SU TANG (LAGGING) (mm):", value=8.0, step=1.0)
             hieu_suat_truyen = float(hieu_suat) if dong_bo else 0.94
             st.caption(f"Hiệu suất truyền động: **{hieu_suat_truyen:.2f}**")
 
-        # Quy đổi và tính toán tiếp tục...
-        Wb_lbs_ft = (m2_bang * 0.67197) if dong_bo else 9.0
+        # Quy đổi đơn vị hệ Anh (CEMA)
         L_ft = L_cema_m * 3.28084
         Q_tph = Q_cema_th * 1.10231
         V_fpm = V_cema_ms * 196.85
@@ -539,14 +536,47 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         skirt_len_ft = chieu_dai_skirt_m * 3.28084
         skirt_depth_in = be_sau_skirt_cm / 2.54
 
-        # Trọng lượng vật liệu Wm (lbs/ft)
-        Wm_lbs_ft = (Q_tph * 2000.0) / (60.0 * V_fpm) if V_fpm > 0 else 0
-        Wb_lbs_ft = 9.0
+        Wm_lbs_ft = (Q_tph * 2000.0) / (60.0 * V_fpm) if V_fpm > 0 else 0.0
+
+        # XÁC ĐỊNH TRỌNG LƯỢNG 1 FT BĂNG (Wb) THEO CHUẨN FILE EXCEL MJGTEST
+        if dong_bo and ('M1_m2_bang' in st.session_state):
+            # Lấy trực tiếp từ bóc tách thực tế định mức xưởng của Tab 1
+            Wb_lbs_ft = float(st.session_state['M1_m2_bang']) * 0.67197
+            nguon_wb = f"Đồng bộ Tab 1 ({st.session_state['M1_m2_bang']:.2f} kg/m)"
+        else:
+            # Tra cứu bảng CEMA Table 6-1 theo khổ inch và Wm
+            cema_widths = [18.0, 24.0, 30.0, 36.0, 42.0, 48.0, 54.0, 60.0, 72.0, 84.0, 96.0]
+            # Mảng giá trị tương ứng [Wm <= 30, Wm <= 75, Wm > 75]
+            cema_wb_table = [
+                [3.5, 4.0, 4.5],   # 18"
+                [4.5, 5.5, 6.0],   # 24"
+                [6.0, 7.0, 8.0],   # 30"
+                [9.0, 10.0, 12.0], # 36"
+                [11.0, 12.0, 14.0],# 42"
+                [14.0, 15.0, 17.0],# 48"
+                [16.0, 17.0, 19.0],# 54"
+                [18.0, 20.0, 22.0],# 60"
+                [21.0, 24.0, 26.0],# 72"
+                [25.0, 30.0, 33.0],# 84"
+                [30.0, 35.0, 38.0] # 96"
+            ]
+            # Tìm dòng khổ gần nhất
+            idx_w = min(range(len(cema_widths)), key=lambda i: abs(cema_widths[i] - w_in))
+            if Wm_lbs_ft <= 30.0:
+                col_wm = 0
+            elif Wm_lbs_ft <= 75.0:
+                col_wm = 1
+            else:
+                col_wm = 2
+            Wb_lbs_ft = cema_wb_table[idx_w][col_wm]
+            nguon_wb = f"Tra bảng CEMA 6-1 ({w_in:.0f} in, Wm={Wm_lbs_ft:.1f} lbs/ft)"
+
+        st.caption(f"Trọng lượng mét dài CEMA ($W_b$): **{Wb_lbs_ft:.2f} lbs/ft** ({Wb_lbs_ft / 0.67197:.2f} kg/m) — *{nguon_wb}*")
 
         # Hệ số điều kiện CEMA
         temp_f = temp_c * 1.8 + 32.0
-        Kt = 1.0 if temp_f >= 32 else (1.0 + (32.0 - temp_f) * 0.008)
-        Kx = 0.494
+        Kt = 1.0 if temp_f >= 32.0 else (1.0 + (32.0 - temp_f) * 0.008)
+        Kx = 0.493894   # Chuẩn dòng R5 sheet MJGTEST
         Ky = 0.025
 
         # Bóc tách 8 thành phần lực cản Te (lbs)
@@ -557,21 +587,26 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         Tam_lbs = (Q_tph * V_fpm) / 3474.0
         Tsb_lbs = skirt_len_ft * (0.128 * (skirt_depth_in ** 2) + 0.15) * 6.0
         Tbc_lbs = so_cleaner * 180.0
-        Tp_lbs = 20.0
+        Tp_lbs = 19.387 # Cell R7 sheet MJGTEST
 
         Te_lbs = Tx_lbs + Tyr_lbs + Tyc_lbs + Th_lbs + Tam_lbs + Tsb_lbs + Tbc_lbs + Tp_lbs
         Te_kN = Te_lbs * 0.00444822
 
-        # Lực căng nhánh nhả và nhánh căng
-        T2_lbs = 0.5 * Te_lbs  # Lực căng nhánh nhả theo hệ số Cw = 0.5
+        # Lực căng nhánh nhả và nhánh căng theo độ võng Sag (Sheet MJGTEST R157 - R161)
+        Cw = 0.5
+        T2_cw = Cw * Te_lbs
+        Si_ft = 4.0  # Khoảng cách con lăn đỡ máng 4ft (~1.2m)
+        To_sag = (Si_ft * (Wb_lbs_ft + Wm_lbs_ft)) / (8.0 * 0.02) # Sag 2%
+        T2_lbs = max(T2_cw, To_sag)
         T1_lbs = Te_lbs + T2_lbs
-        luc_piw = T1_lbs / w_in
-        luc_kgf_cm = (T1_lbs * 0.45359) / (B_cema_mm / 10.0)
 
-        # Tính công suất điện và tổn hao
+        luc_piw = T1_lbs / w_in if w_in > 0 else 0.0
+        luc_kgf_cm = (T1_lbs * 0.45359) / (B_cema_mm / 10.0) if B_cema_mm > 0 else 0.0
+
+        # Tính công suất điện và tổn hao (Sheet MJGTEST R20 - R24)
         HP_belt = (Te_lbs * V_fpm) / 33000.0
         HP_bearing = 0.03 * HP_belt + 0.05
-        HP_gear = (HP_belt + HP_bearing) * (1.0 / hieu_suat_truyen - 1.0)
+        HP_gear = (HP_belt + HP_bearing) * (1.0 / max(hieu_suat_truyen, 0.01) - 1.0)
         HP_tong = HP_belt + HP_bearing + HP_gear
         P_tong_kW = HP_tong * 0.7457
 
@@ -586,18 +621,18 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
         df_cema_luc = pd.DataFrame({
             "THÀNH PHẦN LỰC CẢN CEMA": [
-                "Lực ma sát con lăn (Tx)", 
-                "Lực cản uốn lượn nhánh không tải (Tyr)", 
-                "Lực cản uốn lượn nhánh có tải (Tyc)", 
-                "Lực nâng thẳng đứng (Th)", 
-                "Lực gia tốc nạp liệu (Tam)", 
-                "Lực ma sát tấm chắn liệu (Tsb)", 
-                "Lực cản gạt dọn băng (Tbc)", 
+                "Lực ma sát con lăn (Tx)",
+                "Lực cản uốn lượn nhánh không tải (Tyr)",
+                "Lực cản uốn lượn nhánh có tải (Tyc)",
+                "Lực nâng thẳng đứng (Th)",
+                "Lực gia tốc nạp liệu (Tam)",
+                "Lực ma sát tấm chắn liệu (Tsb)",
+                "Lực cản gạt dọn băng (Tbc)",
                 "Lực cản tang uốn phụ (Tp)"
             ],
             "GIÁ TRỊ (lbs)": [f"{Tx_lbs:.1f}", f"{Tyr_lbs:.1f}", f"{Tyc_lbs:.1f}", f"{Th_lbs:.1f}", f"{Tam_lbs:.1f}", f"{Tsb_lbs:.1f}", f"{Tbc_lbs:.1f}", f"{Tp_lbs:.1f}"],
             "GIÁ TRỊ QUY ĐỔI (kN)": [f"{Tx_lbs*0.00445:.2f}", f"{Tyr_lbs*0.00445:.2f}", f"{Tyc_lbs*0.00445:.2f}", f"{Th_lbs*0.00445:.2f}", f"{Tam_lbs*0.00445:.2f}", f"{Tsb_lbs*0.00445:.2f}", f"{Tbc_lbs*0.00445:.2f}", f"{Tp_lbs*0.00445:.2f}"],
-            "TỶ TRỌNG (%)": [f"{(Tx_lbs/Te_lbs)*100:.1f}%", f"{(Tyr_lbs/Te_lbs)*100:.1f}%", f"{(Tyc_lbs/Te_lbs)*100:.1f}%", f"{(Th_lbs/Te_lbs)*100:.1f}%", f"{(Tam_lbs/Te_lbs)*100:.1f}%", f"{(Tsb_lbs/Te_lbs)*100:.1f}%", f"{(Tbc_lbs/Te_lbs)*100:.1f}%", f"{(Tp_lbs/Te_lbs)*100:.1f}%"]
+            "TỶ TRỌNG (%)": [f"{(Tx_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tyr_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tyc_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Th_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tam_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tsb_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tbc_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tp_lbs/max(Te_lbs, 1.0))*100:.1f}%"]
         })
         st.table(df_cema_luc)
 
@@ -605,7 +640,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         st.markdown("#### 📈 MÔ PHỎNG ĐƯỜNG CONG QUỸ ĐẠO RƠI VẬT LIỆU (CEMA TRAJECTORY)")
         R_tong_m = (dk_tang_cema_mm / 2.0 + boc_cao_su_mm + 15.0) / 1000.0
         V_tang = V_cema_ms
-        ly_tam = (V_tang ** 2) / (9.81 * R_tong_m)
+        ly_tam = (V_tang ** 2) / (9.81 * R_tong_m) if R_tong_m > 0 else 0.0
         theta_deg = 0.0 if ly_tam >= 1.0 else math.degrees(math.acos(ly_tam))
 
         t_arr = np.linspace(0, 0.8, 25)
@@ -617,7 +652,6 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         df_traj = pd.DataFrame({"KHOẢNG CÁCH BAY X (m)": x_m, "ĐỘ RƠI SÂU Y (m)": y_m})
         st.line_chart(df_traj.set_index("KHOẢNG CÁCH BAY X (m)"))
         st.caption(f"Góc văng vật liệu khỏi tang: **{theta_deg:.1f}°** | Vận tốc tiếp tuyến: **{V_tang:.2f} m/s**")
-
 # ==============================================================================
 # MODULE 2: ÉP THỦY LỰC & LƯU HÓA
 # ==============================================================================
