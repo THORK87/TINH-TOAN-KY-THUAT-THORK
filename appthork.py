@@ -386,14 +386,30 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         m_cs_mat = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat
         m_vai_moc = kho_m * n_lop_thuc * tl_vai_m2
         m_cs_trang = kho_m * (n_lop_thuc * day_trang_1_lop) * tt_cs_trang
-        m2_bang = round(m_cs_mat + m_vai_moc + m_cs_trang, 2)
+        # BƯỚC 2: TÍNH CHÍNH XÁC TRỌNG LƯỢNG 1M BĂNG
+m_cs_mat = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat
+m_vai_moc = kho_m * n_lop_thuc * tl_vai_m2
+m_cs_trang = kho_m * (n_lop_thuc * day_trang_1_lop) * tt_cs_trang
+m2_bang = round(m_cs_mat + m_vai_moc + m_cs_trang, 2)
 
-        if c_mode == "Chiều dài tuyến (L)":
-            L_tuyen = L_input
-            CVLT = 2.0 * L_tuyen + math.pi * d_pulley_chuan_m
-        else:
-            CVLT = CVLT_input
-            L_tuyen = max((CVLT - math.pi * d_pulley_chuan_m) / 2.0, 1.0)
+# --- THÊM ĐOẠN TÍNH PULLEY NÀY VÀO TRƯỚC IF C_MODE ---
+be_day_tong_mm = n_lop_thuc * float(row_vai["BE_DAY"]) + cao_su_tren + cao_su_duoi
+d_min_ly_thuyet = 25.0 * be_day_tong_mm
+
+if auto_pulley:
+    d_pulley_chuan_mm = lam_tron_pulley_chuan(d_min_ly_thuyet)
+else:
+    d_pulley_chuan_mm = D_pulley_custom
+
+d_pulley_chuan_m = float(d_pulley_chuan_mm) / 1000.0
+# ----------------------------------------------------
+
+if c_mode == "Chiều dài tuyến (L)":
+    L_tuyen = L_input
+    CVLT = 2.0 * L_tuyen + math.pi * d_pulley_chuan_m
+else:
+    CVLT = CVLT_input
+    L_tuyen = max((CVLT - math.pi * d_pulley_chuan_m) / 2.0, 1.0)
 
         C_din = tinh_he_so_C_din(L_tuyen)
         FH = (m_vl + m2_bang) * 9.81 * sin_alpha * L_tuyen
