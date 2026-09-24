@@ -339,39 +339,64 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         # ----------------------------------------------------------------------
         # TÍNH TOÁN DIN 22101
         # ----------------------------------------------------------------------
-        m2_bang = B * 0.0125
-        m_vl = (Q * 1000.0) / (3600.0 * V) if V > 0 else 0.0
+       # ----------------------------------------------------------------------
+        # TÍNH TOÁN CƠ HỌC BĂNG TẢI (DIN 22101) - ĐỘNG HÓA VẢI & SỐ LỚP
+        # ----------------------------------------------------------------------
+        kho_m = B / 1000.0
+        tt_cs_mat = 1.26       # Tỷ trọng cao su mặt mã 1B
+        tt_cs_trang = 1.36     # Tỷ trọng cao su cán tráng PR
         sin_alpha = math.sin(math.radians(alpha_deg))
         cos_alpha = math.cos(math.radians(alpha_deg))
+        m_vl = (Q * 1000.0) / (3600.0 * V) if V > 0 else 0.0
 
-        # Ước tính sơ bộ chiều dài & lực để xác định D_min Pulley
+        # --- BƯỚC 1: ƯỚC TÍNH SƠ BỘ ĐỂ CHỌN MÁC VẢI & SỐ LỚP ---
+        # Giả định sơ bộ ban đầu để tính lực căng ước tính
+        m2_bang_est = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat + kho_m * 4 * (0.700 + 0.76 * tt_cs_trang)[cite: 2]
         C_din_est = tinh_he_so_C_din(L_tuyen_est)
-        FH_est = (m_vl + m2_bang) * 9.81 * sin_alpha * L_tuyen_est
-        FF_est = C_din_est * (m_vl + m2_bang) * 9.81 * f0_din * L_tuyen_est * cos_alpha
-        F_kN_est = max((FH_est + FF_est) / 1000.0, 0.01)
-        luc_cang_est_kgf_cm = (F_kN_est * 101.972) / (B / 10.0)
+        FH_est = (m_vl + m2_bang_est) * 9.81 * sin_alpha * L_tuyen_est
+        FF_est = C_din_est * (m_vl + m2_bang_est) * 9.81 * f0_din * L_tuyen_est * cos_alpha
+        F_est_kN = max((FH_est + FF_est) / 1000.0, 0.01)
+        luc_cang_est_kgf_cm = (F_est_kN * 101.972) / (B / 10.0)
 
+        # Chọn kết cấu vải tối ưu từ hàm 5 phương án
         df_so_bo = chon_5_phuong_an_vai(luc_cang_est_kgf_cm, he_so_an_toan)
         dong_kn_so_bo = df_so_bo[df_so_bo["KẾT CẤU"].str.contains("Khuyến nghị")]
-        n_lop_so_bo = 4
+        
+        # Mặc định phòng ngừa trường hợp không tìm thấy phương án
+        n_lop_thuc = 4
+        vai_chuan_thuc = "EP200"
+
         if not dong_kn_so_bo.empty:
             str_pa = dong_kn_so_bo.iloc[0]["KẾT CẤU"]
             for c in ["2P", "3P", "4P", "5P", "6P"]:
                 if c in str_pa:
-                    n_lop_so_bo = int(c[0])
+                    n_lop_thuc = int(c[0])
                     break
-
-        vai_chuan_est = "EP200"
-        if not dong_kn_so_bo.empty:
-            loai_de_xuat = dong_kn_so_bo.iloc[0]["LOẠI VẢI ĐỀ XUẤT"]
+            
+            str_de_xuat = dong_kn_so_bo.iloc[0]["LOẠI VẢI ĐỀ XUẤT"]
             for v_name in DF_TIEUCHUAN_VAI["LOAI_VAI"].tolist():
-                if v_name in loai_de_xuat:
-                    vai_chuan_est = v_name
+                if v_name in str_de_xuat:
+                    vai_chuan_thuc = v_name
                     break
 
-        row_vai = DF_TIEUCHUAN_VAI[DF_TIEUCHUAN_VAI["LOAI_VAI"] == vai_chuan_est].iloc[0]
-        be_day_tong_mm = n_lop_so_bo * row_vai["BE_DAY"] + cao_su_tren + cao_su_duoi
+        # Tra cứu thông số định mức của mác vải được chọn
+        row_vai = DF_TIEUCHUAN_VAI[DF_TIEUCHUAN_VAI["LOAI_VAI"] == vai_chuan_thuc].iloc[0]
+        tl_vai_m2 = row_vai["TL_M2"] / 1000.0          # Đổi g/m2 sang kg/m2 (ví dụ EP200 = 0.700 kg/m2)[cite: 2]
+        day_trang_1_lop = row_vai.get("DAY_TRANG", 0.76) # Bề dày cao su tráng nén thực tế mỗi lớp (mm)[cite: 2]
 
+        # --- BƯỚC 2: TÍNH TRỌNG LƯỢNG CHÍNH XÁC THEO MÁC VẢI VÀ SỐ LỚP VỪA CHỌN ---
+        # 1. Cao su mặt (kg/m)
+        m_cs_mat = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat[cite: 2]
+        # 2. Vải mộc thực tế (kg/m)
+        m_vai_moc = kho_m * n_lop_thuc * tl_vai_m2[cite: 2]
+        # 3. Cao su cán tráng thực tế (kg/m)
+        m_cs_trang = kho_m * (n_lop_thuc * day_trang_1_lop) * tt_cs_trang[cite: 2]
+
+        # Trọng lượng mét dài băng tải chính xác tuyệt đối
+        m2_bang = round(m_cs_mat + m_vai_moc + m_cs_trang, 2)[cite: 2]
+
+        # --- BƯỚC 3: TÍNH TOÁN LỰC & CÔNG SUẤT CHÍNH THỨC ---
+        be_day_tong_mm = n_lop_thuc * row_vai["BE_DAY"] + cao_su_tren + cao_su_duoi
         d_min_ly_thuyet = 25.0 * be_day_tong_mm
         d_pulley_chuan_mm = lam_tron_pulley_chuan(d_min_ly_thuyet) if auto_pulley else D_pulley_custom
         d_pulley_chuan_m = d_pulley_chuan_mm / 1000.0
@@ -383,18 +408,15 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             CVLT = CVLT_input
             L_tuyen = max((CVLT - math.pi * d_pulley_chuan_m) / 2.0, 1.0)
 
-        # Tính lực chính thức với L_tuyen và C_din chuẩn
         C_din = tinh_he_so_C_din(L_tuyen)
         FH = (m_vl + m2_bang) * 9.81 * sin_alpha * L_tuyen
         FF = C_din * (m_vl + m2_bang) * 9.81 * f0_din * L_tuyen * cos_alpha
         F_kN = (FH + FF) / 1000.0
         luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
 
-        # Tính công suất chạy ổn định và công suất khởi động
         P_chay_kW = (F_kN * V) / max(hieu_suat, 0.01)
         sf_start = tinh_sf_start(L_tuyen)
         P_dong_co_kW = P_chay_kW * sf_start
-        luc_keo_khoi_dong_N = (F_kN * 1000.0) * sf_start
 
         # Lưu session state cho Tab 4 CEMA
         st.session_state['M1_L'] = L_tuyen
