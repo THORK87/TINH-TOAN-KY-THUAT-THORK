@@ -340,17 +340,21 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         # TÍNH TOÁN DIN 22101
         # ----------------------------------------------------------------------
        # ----------------------------------------------------------------------
-        # TÍNH TOÁN CƠ HỌC BĂNG TẢI (DIN 22101) - ĐỘNG HÓA VẢI & SỐ LỚP
+        # TÍNH TOÁN CƠ HỌC BĂNG TẢI (DIN 22101) - TỰ ĐỘNG HÓA VẢI & SỐ LỚP
         # ----------------------------------------------------------------------
+        f0_din = 0.020         # Định nghĩa hệ số cản con lăn cơ sở DIN 22101
         kho_m = B / 1000.0
-        tt_cs_mat = 1.26       # Tỷ trọng cao su mặt mã 1B
-        tt_cs_trang = 1.36     # Tỷ trọng cao su cán tráng PR
+        tt_cs_mat = 1.26       # Tỷ trọng cao su mặt mã 1B[cite: 2]
+        tt_cs_trang = 1.36     # Tỷ trọng cao su cán tráng PR[cite: 2]
         sin_alpha = math.sin(math.radians(alpha_deg))
         cos_alpha = math.cos(math.radians(alpha_deg))
         m_vl = (Q * 1000.0) / (3600.0 * V) if V > 0 else 0.0
 
+        # Lấy chiều dài ước tính nếu chưa có
+        if 'L_tuyen_est' not in locals():
+            L_tuyen_est = L_input if c_mode == "Chiều dài tuyến (L)" else (CVLT_input / 2.0)
+
         # --- BƯỚC 1: ƯỚC TÍNH SƠ BỘ ĐỂ CHỌN MÁC VẢI & SỐ LỚP ---
-        # Giả định sơ bộ ban đầu để tính lực căng ước tính
         m2_bang_est = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat + kho_m * 4 * (0.700 + 0.76 * tt_cs_trang)[cite: 2]
         C_din_est = tinh_he_so_C_din(L_tuyen_est)
         FH_est = (m_vl + m2_bang_est) * 9.81 * sin_alpha * L_tuyen_est
