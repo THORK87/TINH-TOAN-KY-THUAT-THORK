@@ -190,6 +190,26 @@ def tinh_sf_start(chieu_dai_tuyen):
     else:
         return round(1.45 - ((chieu_dai_tuyen - 50.0) / 750.0) * 0.25, 2)
 
+def tra_cuu_cema_wb(w_in, Wm_lbs_ft):
+    """Bảng tra CEMA Table 6-1 trích xuất nguyên bản từ file Excel THIET KE BANG TAI 7.24.xls (Sheet MJGTEST R5:R17)"""
+    cema_widths = [18.0, 24.0, 30.0, 36.0, 42.0, 48.0, 54.0, 60.0, 72.0, 84.0, 96.0]
+    cema_wb_table = [
+        [3.5, 4.0, 4.5],    # 18 in
+        [4.5, 5.5, 6.0],    # 24 in
+        [6.0, 7.0, 8.0],    # 30 in
+        [9.0, 10.0, 12.0],  # 36 in
+        [11.0, 12.0, 14.0], # 42 in
+        [14.0, 15.0, 17.0], # 48 in
+        [16.0, 17.0, 19.0], # 54 in
+        [18.0, 20.0, 22.0], # 60 in
+        [21.0, 24.0, 26.0], # 72 in
+        [25.0, 30.0, 33.0], # 84 in
+        [30.0, 35.0, 38.0]  # 96 in
+    ]
+    idx = min(range(len(cema_widths)), key=lambda i: abs(cema_widths[i] - w_in))
+    col = 0 if Wm_lbs_ft <= 30.0 else (1 if Wm_lbs_ft <= 75.0 else 2)
+    return cema_wb_table[idx][col]
+
 def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.95):
     danh_sach_ep = [100, 125, 150, 200, 250, 300, 400, 500]
     tong_luc_danh_nghia = F_cang_kgf_cm * he_so_an_toan
@@ -583,12 +603,29 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         skirt_len_ft = chieu_dai_skirt_m * 3.28084
         skirt_depth_in = be_sau_skirt_cm / 2.54
 
-        Wm_lbs_ft = (Q_tph * 2000.0) / (60.0 * V_fpm) if V_fpm > 0 else 0
-        Wb_lbs_ft = 9.0
+        Wm_lbs_ft = (Q_tph * 2000.0) / (60.0 * V_fpm) if V_fpm > 0 else 0.0
+
+        # Xác định trọng lượng băng Wb: Lựa chọn giữa File Excel CEMA và Tab 1
+        phuong_an_wb = st.radio(
+            "Nguồn tính trọng lượng băng Wb:",
+            ["Chuẩn file Excel CEMA (Table 6-1)", "Thực tế từ Tab 1 (kg/m)"],
+            horizontal=True
+        )
+
+        if phuong_an_wb == "Chuẩn file Excel CEMA (Table 6-1)":
+            Wb_lbs_ft = tra_cuu_cema_wb(w_in, Wm_lbs_ft)
+            st.caption(f"Trọng lượng băng tra bảng CEMA: **{Wb_lbs_ft:.2f} lbs/ft** (~{Wb_lbs_ft / 0.67197:.2f} kg/m)")
+        else:
+            if dong_bo and ('M1_m2_bang' in st.session_state):
+                Wb_kg_m = float(st.session_state['M1_m2_bang'])
+            else:
+                Wb_kg_m = float(m2_bang)
+            Wb_lbs_ft = Wb_kg_m * 0.67197
+            st.caption(f"Trọng lượng băng đồng bộ Tab 1: **{Wb_lbs_ft:.2f} lbs/ft** ({Wb_kg_m:.2f} kg/m)")
 
         temp_f = temp_c * 1.8 + 32.0
-        Kt = 1.0 if temp_f >= 32 else (1.0 + (32.0 - temp_f) * 0.008)
-        Kx = 0.494
+        Kt = 1.0 if temp_f >= 32.0 else (1.0 + (32.0 - temp_f) * 0.008)
+        Kx = 0.493894
         Ky = 0.025
 
         # Bóc tách 8 thành phần lực cản Te (lbs)
@@ -599,15 +636,15 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         Tam_lbs = (Q_tph * V_fpm) / 3474.0
         Tsb_lbs = skirt_len_ft * (0.128 * (skirt_depth_in ** 2) + 0.15) * 6.0
         Tbc_lbs = so_cleaner * 180.0
-        Tp_lbs = 20.0
+        Tp_lbs = 19.387
 
         Te_lbs = Tx_lbs + Tyr_lbs + Tyc_lbs + Th_lbs + Tam_lbs + Tsb_lbs + Tbc_lbs + Tp_lbs
         Te_kN = Te_lbs * 0.00444822
 
         T2_lbs = 0.5 * Te_lbs
         T1_lbs = Te_lbs + T2_lbs
-        luc_piw = T1_lbs / w_in if w_in > 0 else 0
-        luc_kgf_cm = (T1_lbs * 0.45359) / (B_cema_mm / 10.0) if B_cema_mm > 0 else 0
+        luc_piw = T1_lbs / w_in if w_in > 0 else 0.0
+        luc_kgf_cm = (T1_lbs * 0.45359) / (B_cema_mm / 10.0) if B_cema_mm > 0 else 0.0
 
         HP_belt = (Te_lbs * V_fpm) / 33000.0
         HP_bearing = 0.03 * HP_belt + 0.05
