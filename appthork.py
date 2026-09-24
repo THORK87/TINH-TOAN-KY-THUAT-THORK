@@ -140,7 +140,7 @@ div[data-testid="stDataFrame"] [role="columnheader"] * {
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ==============================================================================
-# DỮ LIỆU CƠ SỞ TIÊU CHUẨN
+# DỮ LIỆU CƠ SỞ TIÊU CHUẨN & HÀM KỸ THUẬT
 # ==============================================================================
 DF_TIEUCHUAN_VAI = pd.DataFrame([
     {"LOAI_VAI": "EP100", "LUC_CHON": 0,   "LUC_THUC": 100, "BE_DAY": 1.00, "TL_M2": 385},
@@ -171,34 +171,51 @@ DANH_SACH_MAY_EP = [
 
 DAY_PULLEY_CHUAN = [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1400, 1600]
 
+def tinh_he_so_C_din(L):
+    """Hệ số cản chiều dài C(L) theo DIN 22101 / ISO 5048 Bảng 1"""
+    if L <= 20.0:
+        return 3.5
+    elif L >= 2000.0:
+        return 1.02
+    else:
+        c_val = 1.0 + (3.5 - 1.0) * math.exp(-(L - 20.0) / 180.0)
+        return round(max(c_val, 1.05), 2)
+
+def tinh_sf_start(chieu_dai_tuyen):
+    """Hệ số khởi động SF_start chuẩn công nghiệp theo chiều dài tuyến"""
+    if chieu_dai_tuyen <= 50.0:
+        return 1.45
+    elif chieu_dai_tuyen >= 800.0:
+        return 1.20
+    else:
+        return round(1.45 - ((chieu_dai_tuyen - 50.0) / 750.0) * 0.25, 2)
+
 def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.95):
     danh_sach_ep = [100, 125, 150, 200, 250, 300, 400, 500]
-    # Lực tổng danh nghĩa theo thiết kế (KHÔNG giảm 0.95)
     tong_luc_danh_nghia = F_cang_kgf_cm * he_so_an_toan
 
     ket_qua = []
     for n in [2, 3, 4, 5, 6]:
-        # Lực 1 lớp thực tế chịu tải (KHÔNG giảm 0.95)
         luc_1_lop_thuc = tong_luc_danh_nghia / n
-        
-        # Chỉ nhân 0.95 khi so sánh để chọn mác vải
         luc_tra_mac = luc_1_lop_thuc * hieu_suat_moi_noi
         mac_chon = next((ep for ep in danh_sach_ep if ep >= luc_tra_mac), None)
-        
+
         ten_pa = f"Phương án {n} lớp ({n}P)"
         if mac_chon:
             de_xuat = f"{n}P(EP{mac_chon})"
             hop_le = True
+            cuong_luc_tong = float(mac_chon * n)
         else:
             de_xuat = f"{n}P(>EP500 - ST)"
             hop_le = False
-            
+            cuong_luc_tong = 0.0
+
         ket_qua.append({
             "n": n,
             "KẾT CẤU": ten_pa,
             "LOẠI VẢI ĐỀ XUẤT": de_xuat,
             "LỰC ĐƠN VỊ 1 LỚP (kgf/cm)": round(luc_1_lop_thuc, 1),
-            "CƯỜNG LỰC TỔNG (kgf/cm)": (mac_chon * n) if mac_chon else 0.0,
+            "CƯỜNG LỰC TỔNG (kgf/cm)": cuong_luc_tong,
             "SF": f"{he_so_an_toan:.1f}",
             "hop_le": hop_le,
             "mac_ep": mac_chon if mac_chon else 9999
@@ -218,21 +235,12 @@ def chon_5_phuong_an_vai(F_cang_kgf_cm, he_so_an_toan=10.0, hieu_suat_moi_noi=0.
         del p["n"], p["hop_le"], p["mac_ep"]
 
     return pd.DataFrame(ket_qua)
+
 def lam_tron_pulley_chuan(d_calc_mm):
     for d in DAY_PULLEY_CHUAN:
         if d >= d_calc_mm:
             return d
     return DAY_PULLEY_CHUAN[-1]
-
-def tinh_sf_start(chieu_dai_tuyen):
-    if chieu_dai_tuyen < 50:
-        return 1.2 + (chieu_dai_tuyen / 50.0) * 0.1
-    elif chieu_dai_tuyen <= 200:
-        return 1.3 + ((chieu_dai_tuyen - 50.0) / 150.0) * 0.2
-    elif chieu_dai_tuyen <= 400:
-        return 1.5 + ((chieu_dai_tuyen - 200.0) / 200.0) * 0.3
-    else:
-        return 2.0 + ((chieu_dai_tuyen - 400.0) / 600.0) * 0.5
 
 def tra_cuu_vai(luc_yeu_cau_1_lop):
     matched_ep = "EP100"
@@ -294,13 +302,15 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         c1, c2, c3 = st.columns(3)
         with c1:
             st.markdown('<div class="thork-card-header">📍 THÔNG SỐ TUYẾN</div>', unsafe_allow_html=True)
-            B = st.number_input("Khổ rộng băng B (mm):", value=800, step=50)
+            B = st.number_input("Khổ rộng băng B (mm):", value=800.0, step=50.0)
             c_mode = st.radio("Cách nhập kích thước:", ["Chiều dài tuyến (L)", "Chu vi liền tròn (CVLT)"], horizontal=True)
-            
+
             if c_mode == "Chiều dài tuyến (L)":
                 L_input = st.number_input("Chiều dài tuyến L (m):", value=200.0, step=5.0)
+                L_tuyen_est = L_input
             else:
                 CVLT_input = st.number_input("Chu vi liền tròn CVLT (m):", value=400.0, step=5.0)
+                L_tuyen_est = CVLT_input / 2.0
 
             alpha_deg = st.number_input("Góc dốc băng tải (°):", value=23.0, step=1.0)
 
@@ -308,7 +318,12 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             st.markdown('<div class="thork-card-header">⚙️ VẬN HÀNH & NĂNG SUẤT</div>', unsafe_allow_html=True)
             Q = st.number_input("Năng suất vận chuyển Q (t/h):", value=400.0, step=10.0)
             V = st.number_input("Vận tốc băng V (m/s):", value=1.0, step=0.1)
-            mu = st.number_input("Hệ số ma sát con lăn (f):", value=0.07, step=0.01, format="%.2f")
+
+            # Tự động hóa hệ số cản theo DIN 22101
+            f0_din = 0.020
+            C_din_view = tinh_he_so_C_din(L_tuyen_est)
+            st.caption(f"⚙️ *DIN 22101 tự động:* $f_0 = 0.020$ | $C(L) = {C_din_view:.2f}$ *(f gộp = {f0_din * C_din_view:.3f})*")
+
             he_so_an_toan = st.number_input("Hệ số an toàn thiết kế (SF):", value=10.0, step=0.5)
 
         with c3:
@@ -316,26 +331,46 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             cao_su_tren = st.number_input("Bề dày cao su trên (mm):", value=4.0, step=0.5)
             cao_su_duoi = st.number_input("Bề dày cao su dưới (mm):", value=2.0, step=0.5)
             hieu_suat = st.number_input("Hiệu suất truyền động (η):", value=0.85, step=0.05)
-            he_so_vai = 0.95
 
             auto_pulley = st.checkbox("Tự động chuẩn hóa Pulley (D_min)", value=True)
             if not auto_pulley:
                 D_pulley_custom = st.number_input("Đường kính Pulley tự nhập (mm):", value=630, step=50)
 
-        # Tính toán DIN 22101
-        L_tuyen_est = L_input if c_mode == "Chiều dài tuyến (L)" else (CVLT_input / 2.0)
+        # ----------------------------------------------------------------------
+        # TÍNH TOÁN DIN 22101
+        # ----------------------------------------------------------------------
         m2_bang = B * 0.0125
-        m_vl = (Q * 1000.0) / (3600.0 * V)
-        sf_start_est = tinh_sf_start(L_tuyen_est)
+        m_vl = (Q * 1000.0) / (3600.0 * V) if V > 0 else 0.0
         sin_alpha = math.sin(math.radians(alpha_deg))
+        cos_alpha = math.cos(math.radians(alpha_deg))
 
-        F_kN_est = ((m_vl + m2_bang) * L_tuyen_est * 9.81 * (mu + sin_alpha)) / 1000.0
-        luc_keo_kgf_cm_est = (F_kN_est * sf_start_est * 101.972) / (B / 10.0)
-        luc_tong_vai_est = luc_keo_kgf_cm_est * he_so_an_toan * he_so_vai
+        # Ước tính sơ bộ chiều dài & lực để xác định D_min Pulley
+        C_din_est = tinh_he_so_C_din(L_tuyen_est)
+        FH_est = (m_vl + m2_bang) * 9.81 * sin_alpha * L_tuyen_est
+        FF_est = C_din_est * (m_vl + m2_bang) * 9.81 * f0_din * L_tuyen_est * cos_alpha
+        F_kN_est = max((FH_est + FF_est) / 1000.0, 0.01)
+        luc_cang_est_kgf_cm = (F_kN_est * 101.972) / (B / 10.0)
 
-        vai_chuan = tra_cuu_vai(luc_tong_vai_est / 5.0)
-        row_vai = DF_TIEUCHUAN_VAI[DF_TIEUCHUAN_VAI["LOAI_VAI"] == vai_chuan].iloc[0]
-        be_day_tong_mm = 5 * row_vai["BE_DAY"] + cao_su_tren + cao_su_duoi
+        df_so_bo = chon_5_phuong_an_vai(luc_cang_est_kgf_cm, he_so_an_toan)
+        dong_kn_so_bo = df_so_bo[df_so_bo["KẾT CẤU"].str.contains("Khuyến nghị")]
+        n_lop_so_bo = 4
+        if not dong_kn_so_bo.empty:
+            str_pa = dong_kn_so_bo.iloc[0]["KẾT CẤU"]
+            for c in ["2P", "3P", "4P", "5P", "6P"]:
+                if c in str_pa:
+                    n_lop_so_bo = int(c[0])
+                    break
+
+        vai_chuan_est = "EP200"
+        if not dong_kn_so_bo.empty:
+            loai_de_xuat = dong_kn_so_bo.iloc[0]["LOẠI VẢI ĐỀ XUẤT"]
+            for v_name in DF_TIEUCHUAN_VAI["LOAI_VAI"].tolist():
+                if v_name in loai_de_xuat:
+                    vai_chuan_est = v_name
+                    break
+
+        row_vai = DF_TIEUCHUAN_VAI[DF_TIEUCHUAN_VAI["LOAI_VAI"] == vai_chuan_est].iloc[0]
+        be_day_tong_mm = n_lop_so_bo * row_vai["BE_DAY"] + cao_su_tren + cao_su_duoi
 
         d_min_ly_thuyet = 25.0 * be_day_tong_mm
         d_pulley_chuan_mm = lam_tron_pulley_chuan(d_min_ly_thuyet) if auto_pulley else D_pulley_custom
@@ -346,19 +381,22 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             CVLT = 2.0 * L_tuyen + math.pi * d_pulley_chuan_m
         else:
             CVLT = CVLT_input
-            L_tuyen = (CVLT - math.pi * d_pulley_chuan_m) / 2.0
+            L_tuyen = max((CVLT - math.pi * d_pulley_chuan_m) / 2.0, 1.0)
 
-        sf_start = tinh_sf_start(L_tuyen)
+        # Tính lực chính thức với L_tuyen và C_din chuẩn
+        C_din = tinh_he_so_C_din(L_tuyen)
         FH = (m_vl + m2_bang) * 9.81 * sin_alpha * L_tuyen
-        FF = (m_vl + m2_bang) * 9.81 * mu * L_tuyen
+        FF = C_din * (m_vl + m2_bang) * 9.81 * f0_din * L_tuyen * cos_alpha
         F_kN = (FH + FF) / 1000.0
-        P_dong_co_kW = (F_kN * V / hieu_suat) * sf_start
-        luc_keo_kgf_cm = (F_kN * sf_start * 101.972) / (B / 10.0)
         luc_cang_don_vi_kgf_cm = (F_kN * 101.972) / (B / 10.0)
-        luc_kd_kgf_cm = (F_kN * sf_start * 101.972) / (B / 10.0)
-        luc_keo_khoi_dong_N = luc_kd_kgf_cm * (B / 10.0) * 9.80665
 
-        # Lưu session state cho Tab CEMA
+        # Tính công suất chạy ổn định và công suất khởi động
+        P_chay_kW = (F_kN * V) / max(hieu_suat, 0.01)
+        sf_start = tinh_sf_start(L_tuyen)
+        P_dong_co_kW = P_chay_kW * sf_start
+        luc_keo_khoi_dong_N = (F_kN * 1000.0) * sf_start
+
+        # Lưu session state cho Tab 4 CEMA
         st.session_state['M1_L'] = L_tuyen
         st.session_state['M1_B'] = B
         st.session_state['M1_Q'] = Q
@@ -368,38 +406,46 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         st.session_state['M1_hieu_suat'] = hieu_suat
         st.session_state['M1_m2_bang'] = m2_bang
 
+        # ----------------------------------------------------------------------
+        # HIỂN THỊ THẺ METRICS
+        # ----------------------------------------------------------------------
         st.markdown("---")
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("CÔNG SUẤT ĐỘNG CƠ", f"{P_dong_co_kW:.1f} kW", f"Lực KĐ: {luc_keo_khoi_dong_N:,.0f} N")
+        m1.metric("CÔNG SUẤT VẬN HÀNH", f"{P_chay_kW:.2f} kW", f"KĐ (SF={sf_start:.2f}): {P_dong_co_kW:.1f} kW")
         m2.metric("TỔNG LỰC KÉO F", f"{F_kN:.2f} kN", f"Cường lực: {luc_cang_don_vi_kgf_cm * he_so_an_toan:.1f} kgf/cm")
-        m3.metric("PULLEY TIÊU CHUẨN", f"Ø {d_pulley_chuan_mm} mm", f"D_min tính: {d_min_ly_thuyet:.0f} mm")
+        m3.metric("PULLEY TIÊU CHUẨN", f"Ø {d_pulley_chuan_mm:.0f} mm", f"D_min tính: {d_min_ly_thuyet:.0f} mm")
         m4.metric("CHU VI LIỀN TRÒN (CVLT)", f"{CVLT:.2f} m", f"Tuyến L = {L_tuyen:.2f} m")
 
-        # Bảng phương án vải bố căn lề & khóa pixel chuẩn
+        # ----------------------------------------------------------------------
+        # BẢNG PHƯƠNG ÁN KẾT CẤU VẢI BỐ
+        # ----------------------------------------------------------------------
         df_5_phuong_an = chon_5_phuong_an_vai(
             F_cang_kgf_cm=luc_cang_don_vi_kgf_cm,
             he_so_an_toan=he_so_an_toan,
             hieu_suat_moi_noi=0.95
         )
         st.markdown("<h5 style='text-align: center; text-transform: uppercase; font-weight: 700; color: #1e293b; margin-top: 18px;'>📋 CÁC PHƯƠNG ÁN KẾT CẤU VẢI BỐ ĐỀ XUẤT</h5>", unsafe_allow_html=True)
-        
+
         table_rows = ""
         for _, r in df_5_phuong_an.iterrows():
             is_kn = "Khuyến nghị" in str(r["KẾT CẤU"])
             bg_color = "#eff6ff" if is_kn else "#ffffff"
             text_weight = "700" if is_kn else "500"
             border_left = "4px solid #2563eb" if is_kn else "1px solid #e2e8f0"
-            
+
+            c_tong = r["CƯỜNG LỰC TỔNG (kgf/cm)"]
+            c_tong_str = f"{c_tong:.1f}" if (isinstance(c_tong, (int, float)) and c_tong > 0) else "-"
+
             table_rows += (
                 f'<tr style="background-color: {bg_color}; font-weight: {text_weight}; border-bottom: 1px solid #e2e8f0;">'
                 f'<td style="text-align: center; padding: 10px; border-left: {border_left};">{r["KẾT CẤU"]}</td>'
                 f'<td style="text-align: center; padding: 10px;">{r["LOẠI VẢI ĐỀ XUẤT"]}</td>'
                 f'<td style="text-align: center; padding: 10px; font-family: monospace;">{r["LỰC ĐƠN VỊ 1 LỚP (kgf/cm)"]:.1f}</td>'
-                f'<td style="text-align: center; padding: 10px; font-family: monospace;">{r["CƯỜNG LỰC TỔNG (kgf/cm)"]:.1f}</td>'
+                f'<td style="text-align: center; padding: 10px; font-family: monospace;">{c_tong_str}</td>'
                 f'<td style="text-align: center; padding: 10px; font-family: monospace;">{r["SF"]}</td>'
                 f'</tr>'
             )
-            
+
         html_table = (
             '<table style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;">'
             '<thead>'
@@ -415,6 +461,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             '</table>'
         )
         st.markdown(html_table, unsafe_allow_html=True)
+
         row_kn = df_5_phuong_an[df_5_phuong_an["KẾT CẤU"].str.contains("Khuyến nghị")]
         quy_cach_de_xuat = row_kn["LOẠI VẢI ĐỀ XUẤT"].values[0] if not row_kn.empty else df_5_phuong_an["LOẠI VẢI ĐỀ XUẤT"].iloc[2]
 
@@ -501,9 +548,8 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
                 L_cema_m = float(L_tuyen)
                 Q_cema_th = float(Q)
                 V_cema_ms = float(V)
-                # Tự động tính H từ góc dốc alpha của Tab 1: H = L * sin(alpha)
                 H_cema_m = float(L_tuyen * math.sin(math.radians(alpha_deg)))
-                
+
                 st.info(f"Đang đồng bộ từ Tab 1:\n- Khổ B: **{B_cema_mm:.0f} mm**\n- Tuyến L: **{L_cema_m:.2f} m**\n- Góc dốc: **{alpha_deg:.1f}°** $\\to$ Nâng cao H: **{H_cema_m:.2f} m**\n- Năng suất Q: **{Q_cema_th:.1f} t/h** | V: **{V_cema_ms:.2f} m/s**")
             else:
                 B_cema_mm = st.number_input("KHỔ RỘNG BĂNG B (mm):", value=float(B), step=50.0, key="cema_B")
@@ -523,15 +569,13 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
         with c_cema3:
             st.markdown("##### 🎯 THÔNG SỐ TANG TRỐNG")
-            # Đồng bộ đường kính Tang tiêu chuẩn vừa chọn ở Tab 1
             dk_default = float(d_pulley_chuan_mm) if (dong_bo and 'd_pulley_chuan_mm' in locals()) else 320.0
             dk_tang_cema_mm = st.number_input("ĐƯỜNG KÍNH TANG CHỦ ĐỘNG (mm):", value=dk_default, step=20.0)
             boc_cao_su_mm = st.number_input("BỀ DÀY BỌC CAO SU TANG (LAGGING) (mm):", value=8.0, step=1.0)
             hieu_suat_truyen = float(hieu_suat) if dong_bo else 0.94
             st.caption(f"Hiệu suất truyền động: **{hieu_suat_truyen:.2f}**")
 
-        # Quy đổi và tính toán tiếp tục...
-        Wb_lbs_ft = (m2_bang * 0.67197) if dong_bo else 9.0
+        # Quy đổi đơn vị CEMA
         L_ft = L_cema_m * 3.28084
         Q_tph = Q_cema_th * 1.10231
         V_fpm = V_cema_ms * 196.85
@@ -539,11 +583,9 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         skirt_len_ft = chieu_dai_skirt_m * 3.28084
         skirt_depth_in = be_sau_skirt_cm / 2.54
 
-        # Trọng lượng vật liệu Wm (lbs/ft)
         Wm_lbs_ft = (Q_tph * 2000.0) / (60.0 * V_fpm) if V_fpm > 0 else 0
         Wb_lbs_ft = 9.0
 
-        # Hệ số điều kiện CEMA
         temp_f = temp_c * 1.8 + 32.0
         Kt = 1.0 if temp_f >= 32 else (1.0 + (32.0 - temp_f) * 0.008)
         Kx = 0.494
@@ -562,16 +604,14 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         Te_lbs = Tx_lbs + Tyr_lbs + Tyc_lbs + Th_lbs + Tam_lbs + Tsb_lbs + Tbc_lbs + Tp_lbs
         Te_kN = Te_lbs * 0.00444822
 
-        # Lực căng nhánh nhả và nhánh căng
-        T2_lbs = 0.5 * Te_lbs  # Lực căng nhánh nhả theo hệ số Cw = 0.5
+        T2_lbs = 0.5 * Te_lbs
         T1_lbs = Te_lbs + T2_lbs
-        luc_piw = T1_lbs / w_in
-        luc_kgf_cm = (T1_lbs * 0.45359) / (B_cema_mm / 10.0)
+        luc_piw = T1_lbs / w_in if w_in > 0 else 0
+        luc_kgf_cm = (T1_lbs * 0.45359) / (B_cema_mm / 10.0) if B_cema_mm > 0 else 0
 
-        # Tính công suất điện và tổn hao
         HP_belt = (Te_lbs * V_fpm) / 33000.0
         HP_bearing = 0.03 * HP_belt + 0.05
-        HP_gear = (HP_belt + HP_bearing) * (1.0 / hieu_suat_truyen - 1.0)
+        HP_gear = (HP_belt + HP_bearing) * (1.0 / max(hieu_suat_truyen, 0.01) - 1.0)
         HP_tong = HP_belt + HP_bearing + HP_gear
         P_tong_kW = HP_tong * 0.7457
 
@@ -586,18 +626,18 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
         df_cema_luc = pd.DataFrame({
             "THÀNH PHẦN LỰC CẢN CEMA": [
-                "Lực ma sát con lăn (Tx)", 
-                "Lực cản uốn lượn nhánh không tải (Tyr)", 
-                "Lực cản uốn lượn nhánh có tải (Tyc)", 
-                "Lực nâng thẳng đứng (Th)", 
-                "Lực gia tốc nạp liệu (Tam)", 
-                "Lực ma sát tấm chắn liệu (Tsb)", 
-                "Lực cản gạt dọn băng (Tbc)", 
+                "Lực ma sát con lăn (Tx)",
+                "Lực cản uốn lượn nhánh không tải (Tyr)",
+                "Lực cản uốn lượn nhánh có tải (Tyc)",
+                "Lực nâng thẳng đứng (Th)",
+                "Lực gia tốc nạp liệu (Tam)",
+                "Lực ma sát tấm chắn liệu (Tsb)",
+                "Lực cản gạt dọn băng (Tbc)",
                 "Lực cản tang uốn phụ (Tp)"
             ],
             "GIÁ TRỊ (lbs)": [f"{Tx_lbs:.1f}", f"{Tyr_lbs:.1f}", f"{Tyc_lbs:.1f}", f"{Th_lbs:.1f}", f"{Tam_lbs:.1f}", f"{Tsb_lbs:.1f}", f"{Tbc_lbs:.1f}", f"{Tp_lbs:.1f}"],
             "GIÁ TRỊ QUY ĐỔI (kN)": [f"{Tx_lbs*0.00445:.2f}", f"{Tyr_lbs*0.00445:.2f}", f"{Tyc_lbs*0.00445:.2f}", f"{Th_lbs*0.00445:.2f}", f"{Tam_lbs*0.00445:.2f}", f"{Tsb_lbs*0.00445:.2f}", f"{Tbc_lbs*0.00445:.2f}", f"{Tp_lbs*0.00445:.2f}"],
-            "TỶ TRỌNG (%)": [f"{(Tx_lbs/Te_lbs)*100:.1f}%", f"{(Tyr_lbs/Te_lbs)*100:.1f}%", f"{(Tyc_lbs/Te_lbs)*100:.1f}%", f"{(Th_lbs/Te_lbs)*100:.1f}%", f"{(Tam_lbs/Te_lbs)*100:.1f}%", f"{(Tsb_lbs/Te_lbs)*100:.1f}%", f"{(Tbc_lbs/Te_lbs)*100:.1f}%", f"{(Tp_lbs/Te_lbs)*100:.1f}%"]
+            "TỶ TRỌNG (%)": [f"{(Tx_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tyr_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tyc_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Th_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tam_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tsb_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tbc_lbs/max(Te_lbs, 1.0))*100:.1f}%", f"{(Tp_lbs/max(Te_lbs, 1.0))*100:.1f}%"]
         })
         st.table(df_cema_luc)
 
@@ -605,7 +645,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
         st.markdown("#### 📈 MÔ PHỎNG ĐƯỜNG CONG QUỸ ĐẠO RƠI VẬT LIỆU (CEMA TRAJECTORY)")
         R_tong_m = (dk_tang_cema_mm / 2.0 + boc_cao_su_mm + 15.0) / 1000.0
         V_tang = V_cema_ms
-        ly_tam = (V_tang ** 2) / (9.81 * R_tong_m)
+        ly_tam = (V_tang ** 2) / (9.81 * R_tong_m) if R_tong_m > 0 else 0
         theta_deg = 0.0 if ly_tam >= 1.0 else math.degrees(math.acos(ly_tam))
 
         t_arr = np.linspace(0, 0.8, 25)
@@ -711,10 +751,10 @@ elif module_chon == "M2: CÔNG NGHỆ ÉP THỦY LỰC & LƯU HÓA":
                 h_ong = st.number_input("Chiều cao (mm):", value=30.0)
                 the_tich_cm3 = math.pi * (((d_ngoai/10/2)**2) - ((d_trong/10/2)**2)) * (h_ong/10)
             elif loai_hinh == "HÌNH HỘP CHỮ NHẬT":
-                c1 = st.number_input("Chiều dài (mm):", value=150.0)
-                c2 = st.number_input("Chiều rộng (mm):", value=80.0)
-                c3 = st.number_input("Chiều dày (mm):", value=25.0)
-                the_tich_cm3 = (c1/10) * (c2/10) * (c3/10)
+                c1_p = st.number_input("Chiều dài (mm):", value=150.0)
+                c2_p = st.number_input("Chiều rộng (mm):", value=80.0)
+                c3_p = st.number_input("Chiều dày (mm):", value=25.0)
+                the_tich_cm3 = (c1_p/10) * (c2_p/10) * (c3_p/10)
             elif loai_hinh == "HÌNH NÓN CỤT RỖNG":
                 D_lon = st.number_input("ĐK đáy lớn ngoài (mm):", value=152.0)
                 d_lon_tr = st.number_input("ĐK đáy lớn trong (mm):", value=50.0)
