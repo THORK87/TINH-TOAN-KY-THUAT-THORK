@@ -351,7 +351,7 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
             L_tuyen_est = L_input if c_mode == "Chiều dài tuyến (L)" else (CVLT_input / 2.0)
 
         # BƯỚC 1: ƯỚC TÍNH SƠ BỘ ĐỂ CHỌN MÁC VẢI & SỐ LỚP
-        m2_bang_est = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat + kho_m * 4 * (0.700 + 0.76 * tt_cs_trang)[cite: 2]
+        m2_bang_est = kho_m * (cao_su_tren + cao_su_duoi) * tt_cs_mat + kho_m * 4 * (0.700 + 0.76 * tt_cs_trang)
         C_din_est = tinh_he_so_C_din(L_tuyen_est)
         FH_est = (m_vl + m2_bang_est) * 9.81 * sin_alpha * L_tuyen_est
         FF_est = C_din_est * (m_vl + m2_bang_est) * 9.81 * f0_din * L_tuyen_est * cos_alpha
