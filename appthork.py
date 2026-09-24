@@ -654,12 +654,12 @@ if module_chon == "M1: THIẾT KẾ BĂNG TẢI (DIN & CEMA)":
 
         # Áp dụng phạt do ổ bi mòn (Sheet MJGTEST R41:R47)
         if "Old" in tinh_trang_idlers:
-            he_so_phat = 2.0 if cema_class in ["CEMA A", "CEMA B"] else 3.0[cite: 1]
+            he_so_phat = 2.0 if cema_class in ["CEMA A", "CEMA B"] else 3.0
             Kx = Kx_base * he_so_phat
             st.caption(f"⚙️ DIN Penalty kích hoạt: $K_x = {Kx:.4f}$ (gấp {he_so_phat:.0f} lần do ổ bi cũ/mòn)")
         else:
             Kx = Kx_base
-            st.caption(f"⚙️ Con lăn tiêu chuẩn: $K_x = {Kx:.4f}$ lbs/ft ($A_i = {Ai}$, $S_i = {Si_ft}$ ft)")[cite: 1]
+            st.caption(f"⚙️ Con lăn tiêu chuẩn: $K_x = {Kx:.4f}$ lbs/ft ($A_i = {Ai}$, $S_i = {Si_ft}$ ft)")
 
         # 3. Hệ số cản uốn Ky (Chuẩn Sheet MJGTEST R46C2)
         Ky = 0.035
